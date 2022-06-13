@@ -1,7 +1,7 @@
-#include "vector.hpp"
 #include <vector>
 #include <iostream>
 #include <string>
+#include "containers/vector.hpp"
 
 class Test {
 public:
@@ -26,13 +26,31 @@ public:
 	}
 };
 
-int main() {
-	ft::vector<std::string> test(10, "1");
-	test.resize(5);
-	test.resize(10, "2");
-	for (int i = 0; i < 10; i++)
-		std::cout << test[i] << std::endl;
-	std::vector<int> a(10);
-	a.resize(21);
-	std::cout << a.capacity() << std::endl;
+class foo;
+class bar;
+
+template<class T>
+struct is_bar
+{
+	template<class Q>
+	typename ft::enable_if<std::is_same<Q, bar>::value>::type check()
+	{
+		return true;
+	}
+
+	template<class Q>
+	typename ft::enable_if<!std::is_same<Q, bar>::value>::type check()
+	{
+		return false;
+	}
+};
+
+int main()
+{
+	is_bar<foo> foo_is_bar;
+	is_bar<bar> bar_is_bar;
+	if (!foo_is_bar.check() && bar_is_bar.check())
+		std::cout << "It works!" << std::endl;
+
+	return 0;
 }

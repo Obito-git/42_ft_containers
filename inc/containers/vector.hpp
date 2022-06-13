@@ -4,9 +4,10 @@
 
 #ifndef CONTAINERS_VECTOR_HPP
 #define CONTAINERS_VECTOR_HPP
-#include "temp.hpp"
 #include <iostream>
 #include <memory>
+#include "utils/utils.hpp"
+#include "iterators/random_access_iterator.hpp"
 
 namespace ft {
 	template<typename T, class Alloc = std::allocator<T> >
@@ -20,7 +21,10 @@ namespace ft {
 		typedef typename	allocator_type::pointer    		pointer;
 		typedef typename	allocator_type::const_pointer	const_pointer;
 		typedef				size_t  						size_type;
-		typedef				ptrdiff_t						difference_type;
+		typedef				ptrdiff_t						difference_type; //////need???????????????????????????????
+
+		typedef 			random_access_iterator<value_type>	iterator;
+		//const iter
 
 	private:
 		pointer         _data;
@@ -28,12 +32,13 @@ namespace ft {
 		size_type       _size;
 		size_type       _capacity;
 	public:
-		/********************* CONSTRUCTORS ******************************/
+			/********************* CONSTRUCTORS ******************************/
 		/* Default *
 		Empty container constructor (default constructor)
 		Constructs an empty container, with no elements. */
-		explicit vector (const allocator_type& alloc = allocator_type()) :  _data(NULL), _alloc(alloc),
-																			_size(0), _capacity(0) {}
+		explicit vector (const allocator_type& alloc = allocator_type()) :  _alloc(alloc), _size(0), _capacity(0) {
+			_data = _alloc.allocate(_capacity);
+		}
 
 		/* Fill constructor *
 		Constructs a container with n elements. Each element is a copy of val. */
@@ -102,8 +107,8 @@ namespace ft {
 		void resize (size_type n, value_type val = value_type()) {
 			for (; _size > n; _size--) { _alloc.destroy(&_data[_size - 1]); }
 			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size]); _data[_size] = val; } //need tests
-			if (n > _capacity) {
-				reallocate(n > _capacity * 2 ? n : _capacity * 2);
+			if (n > capacity()) {
+				reallocate(n > capacity() * 2 ? n : capacity() * 2);
 				while (_size <= n) { _alloc.construct(&_data[_size++], val); }
 				_size = n;
 			}
@@ -131,18 +136,36 @@ namespace ft {
 		* This function has no effect on the vector size and cannot alter its elements.*/
 		void reserve (size_type n) {
 			if (n > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
-			if (n > _capacity) { reallocate(n); }
+			if (n > capacity()) { reallocate(n); }
 		}
 
+	private:
 		//custom member function
 		void reallocate(size_type new_capacity) {
 			pointer tmp = _alloc.allocate(new_capacity);
-			for (size_type i = 0; i < _size; i++) { tmp[i] = _data[i]; }
+			for (size_type i = 0; i < _size && i < new_capacity; i++) { tmp[i] = _data[i]; }
+			while (_size > new_capacity) {
+				_alloc.destroy(&_data[_size - 1]);
+				_size--;
+			}
 			_alloc.deallocate(_data, _capacity);
 			_capacity = new_capacity;
 			_data = tmp;
 		}
 
+		void reallocate_cleanly(size_type new_capacity) {
+			pointer tmp = _alloc.allocate(new_capacity);
+			pop_all();
+			_alloc.deallocate(_data, _capacity);
+			_capacity = new_capacity;
+			_data = tmp;
+		}
+
+		void pop_all() {
+			while (!empty()) { pop_back(); }
+		}
+
+	public:
 		/********
 		 ********	ELEMENT ACCESS:
 		 ********/
@@ -167,11 +190,11 @@ namespace ft {
 		* throwing an out_of_range exception if it is not (i.e., if n is greater than, or equal to, its size).
 		* This is in contrast with member operator[], that does not check against bounds.*/
 		reference at (size_type n) {
-			if (n >= _size) { throw std::out_of_range("Out of array's bound"); }
+			if (n >= size()) { throw std::out_of_range("Out of array's bound"); }
 			return (_data[n]);
 		}
 		const_reference at (size_type n) const {
-			if (n >= _size) { throw std::out_of_range("Out of array's bound"); }
+			if (n >= size()) { throw std::out_of_range("Out of array's bound"); }
 			return (_data[n]);
 		}
 
@@ -193,8 +216,51 @@ namespace ft {
 		reference back() {
 			return _data[_size - 1];
 		}
-		const_reference back() const {
-			return _data[_size - 1];
+		//CONST SHIT
+//		const_reference back() const {
+//			return _data[_size - 1];		}
+
+		//Modifiers:
+
+		/*  Assign vector content *
+		* Assigns new contents to the vector, replacing its current contents, and modifying its size accordingly.
+		*   The new contents are elements constructed from each of the elements
+		* in the range between first and last, in the same order.*/
+		//template <class InputIterator>
+		//void assign (InputIterator first, InputIterator last) {}
+
+		/*  The new contents are n elements, each initialized to a copy of val. */
+		void assign (size_type n, const value_type& val) {
+			pop_all();
+			if (n > capacity())
+				reallocate_cleanly(n);
+			while (_size < n) { _alloc.construct(&_data[_size++], val) ;}
+		}
+
+		/*  Add element at the end *
+		*   Adds a new element at the end of the vector, after its current last element.
+		* The content of val is copied (or moved) to the new element.
+		* This effectively increases the container size by one, which causes an automatic reallocation of the
+		* allocated storage space if -and only if- the new vector size surpasses the current vector capacity.*/
+		void push_back (const value_type& val) {
+			if (_size == _capacity) { _capacity ? reallocate(_capacity * 2) : reallocate(1) ;}
+			_alloc.construct(_data + _size, val);
+			_size++;
+		}
+
+		/*  Delete last element. *
+		* Removes the last element in the vector, effectively reducing the container size by one.
+		* This destroys the removed element.*/
+		void pop_back() {
+			_alloc.destroy(&back());
+			_size--;
+		}
+
+		iterator begin() {return _data;}
+		iterator end() {return _data + _size; }
+
+		pointer getData() const {
+			return _data;
 		}
 
 

@@ -1,0 +1,9 @@
+//
+// Created by Anton on 13/06/2022.
+//
+
+#ifndef CONTAINERS_ALGORITHM_HPP
+#define CONTAINERS_ALGORITHM_HPP
+
+
+#endif //CONTAINERS_ALGORITHM_HPP
