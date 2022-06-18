@@ -20,8 +20,6 @@ obj:
 clean:
 	rm -rf obj
 	rm -f .*.swp
-	rm -f ft
-	rm -f std
 
 fclean: clean
 	rm -f $(NAME)

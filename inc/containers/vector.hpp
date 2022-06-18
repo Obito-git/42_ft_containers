@@ -271,18 +271,19 @@ namespace ft {
 		/* fill */
 		void insert (const_iterator position, size_type n, const value_type& val) {
 			size_type start_pos = position - begin();
-			if (position == end()) {
-				if (size() + n > capacity() + 1)
-					reserve(size() + n);
-				for (size_type i = 0; i < n; i++)
-					push_back(val);
-				return ;
-			}
 			/* not using reserve for not iterate 2 times on data */
 			pointer tmp_data;
 			size_type copied_elem = 0;
-			size() + n > capacity() ? tmp_data = _alloc.allocate(size() + n) :
-					tmp_data = _alloc.allocate(_capacity);
+			if (_size + n > _capacity)
+			{
+				if (_size + n > _size * 2)
+					_capacity = _size + n;
+				else if (_capacity == 0)
+					_capacity = 1;
+				else
+					_capacity *= 2;
+			}
+			tmp_data = _alloc.allocate(_capacity);
 			for (; copied_elem < start_pos; copied_elem++)
 				tmp_data[copied_elem] = _data[copied_elem];
 			for (; copied_elem - start_pos < n; copied_elem++)
@@ -291,7 +292,6 @@ namespace ft {
 				tmp_data[copied_elem] = _data[copied_elem - n];
 			_alloc.deallocate(_data, capacity());
 			_data = tmp_data;
-			if (size() + n > capacity()) { _capacity = size() + n; }
 			_size += n;
 		}
 

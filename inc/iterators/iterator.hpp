@@ -4,6 +4,7 @@
 
 #ifndef CONTAINERS_ITERATOR_HPP
 #define CONTAINERS_ITERATOR_HPP
+#include <cstddef>
 
 namespace ft {
 	/* Iterator category's */
