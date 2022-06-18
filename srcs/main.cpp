@@ -33,36 +33,16 @@ void test_print(T t) {
 	//std::cout << t << std::endl;
 }
 
-int main() {
-	vector<int> test(10, 1);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	vector<int>::iterator it = test.end();
-	test.insert(it, 42);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin(), 25);
-	test.insert(test.begin() + 4, 244);
-	test.insert(test.begin() + 10, 211);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.end(), 243, 999);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin(), 421, 512);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin() + 4, 332, 816);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
+int main1() {
+	vector<int> a(100, 100);
+	vector<int> b(100, 222);
+	vector<int>::iterator it = b.begin();
+	a.assign(it, it + 5);
+	std::cout << "!!!!!!!!!!!! " << it - b.begin() << std::endl;
 	return (0);
 }
 
-int main1()
+int main()
 {
 	/***************** RANDOM ACCESS OPERATOR *************************************/
 	/******************************************************************************/
@@ -142,6 +122,33 @@ int main1()
 	// *const_beg = 10;
 	//const_beg[0] = 10;
 
+
+	/************************ INSERT ********************/
+	vector<int> test(10, 1);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	vector<int>::iterator it = test.end();
+	test.insert(it, 42);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.begin(), 25);
+	test.insert(test.begin() + 4, 244);
+	test.insert(test.begin() + 10, 211);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.end(), 243, 999);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.begin(), 421, 512);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.begin() + 4, 332, 816);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
 
 	return 0;
 }

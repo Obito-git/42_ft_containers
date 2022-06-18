@@ -148,7 +148,7 @@ namespace ft {
 		*   In all other cases, the function call does not cause a reallocation and the vector capacity is not affected.
 		* This function has no effect on the vector size and cannot alter its elements.*/
 		void reserve (size_type n) {
-			if (n > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
+			if (n + _capacity > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
 			if (n > capacity()) {
 				pointer tmp = _alloc.allocate(n);
 				for (size_type i = 0; i < _size && i < n; i++) { tmp[i] = _data[i]; }
@@ -156,6 +156,18 @@ namespace ft {
 					_alloc.destroy(&_data[_size - 1]);
 					_size--;
 				}
+				_alloc.deallocate(_data, _capacity);
+				_capacity = n;
+				_data = tmp;
+			}
+		}
+
+	private:
+		void reserve_cleanly (size_type n) {
+			if (n > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
+			if (n > capacity()) {
+				pointer tmp = _alloc.allocate(n);
+				clear();
 				_alloc.deallocate(_data, _capacity);
 				_capacity = n;
 				_data = tmp;
@@ -225,8 +237,18 @@ namespace ft {
 		* Assigns new contents to the vector, replacing its current contents, and modifying its size accordingly.
 		*   The new contents are elements constructed from each of the elements
 		* in the range between first and last, in the same order.*/
-		//template <class InputIterator>
-		//void assign (InputIterator first, InputIterator last) {}
+		template <class InputIterator>
+		void assign (InputIterator first, InputIterator last,
+		typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0)
+		{
+			size_type n = last - first;
+			if (n > capacity())
+				reserve_cleanly(n);
+			clear();
+			InputIterator tmp(first);
+			while (tmp != last)
+				push_back(*tmp++);
+		}
 
 		/*  The new contents are n elements, each initialized to a copy of val. */
 		void assign (size_type n, const value_type& val) {
@@ -270,8 +292,13 @@ namespace ft {
 
 		/* fill */
 		void insert (const_iterator position, size_type n, const value_type& val) {
+			/*
+			 *
+			 * TRY TO SIMPLIFY
+			 *
+			 */
 			size_type start_pos = position - begin();
-			/* not using reserve for not iterate 2 times on data */
+			// not using reserve for not iterate 2 times on data
 			pointer tmp_data;
 			size_type copied_elem = 0;
 			if (_size + n > _capacity)
@@ -288,6 +315,36 @@ namespace ft {
 				tmp_data[copied_elem] = _data[copied_elem];
 			for (; copied_elem - start_pos < n; copied_elem++)
 				_alloc.construct(tmp_data + copied_elem, val);
+			for (; copied_elem < _size + n; copied_elem++)
+				tmp_data[copied_elem] = _data[copied_elem - n];
+			_alloc.deallocate(_data, capacity());
+			_data = tmp_data;
+			_size += n;
+		}
+
+		/* range (3) */
+		template <class InputIterator>
+		void insert (const_iterator position, InputIterator first, InputIterator last,
+					 typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0) {
+			size_type start_pos = position - begin();
+			size_type n = last - first;
+			/* not using reserve for not iterate 2 times on data */
+			pointer tmp_data;
+			size_type copied_elem = 0;
+			if (_size + n > _capacity)
+			{
+				if (_size + n > _size * 2)
+					_capacity = _size + n;
+				else if (_capacity == 0)
+					_capacity = 1;
+				else
+					_capacity *= 2;
+			}
+			tmp_data = _alloc.allocate(_capacity);
+			for (; copied_elem < start_pos; copied_elem++)
+				tmp_data[copied_elem] = _data[copied_elem];
+			for (InputIterator it = first; it != last; it++, copied_elem++)
+				_alloc.construct(tmp_data + copied_elem, it);
 			for (; copied_elem < _size + n; copied_elem++)
 				tmp_data[copied_elem] = _data[copied_elem - n];
 			_alloc.deallocate(_data, capacity());
