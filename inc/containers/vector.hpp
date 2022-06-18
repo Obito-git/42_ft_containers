@@ -6,6 +6,7 @@
 #define CONTAINERS_VECTOR_HPP
 #include <iostream>
 #include <memory>
+#include <stdexcept>
 #include "utils/utils.hpp"
 #include "iterators/random_access_iterator.hpp"
 
@@ -21,9 +22,10 @@ namespace ft {
 		typedef typename	allocator_type::pointer    		pointer;
 		typedef typename	allocator_type::const_pointer	const_pointer;
 		typedef				size_t  						size_type;
-		typedef				ptrdiff_t						difference_type; //////need???????????????????????????????
+		typedef				ptrdiff_t						difference_type;
 
-		typedef 			random_access_iterator<value_type>	iterator;
+		typedef 			ft::random_access_iterator<value_type>	iterator;
+		typedef 			ft::random_access_iterator<const value_type> const_iterator;
 		//const iter
 
 	private:
@@ -52,9 +54,20 @@ namespace ft {
 		/* Range constructor *
 		Constructs a container with as many elements as the range [first,last),
 		with each element constructed from its corresponding element in that range, in the same order. */
-//		template <class InputIterator>
-//		vector (InputIterator first, InputIterator last,
-//		        const allocator_type& alloc = allocator_type());
+		template <class InputIterator>
+		vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
+				typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0):
+																_data(null_pointer), _alloc(alloc), _size(0) {
+					//***************** potential error
+			if (last < first)
+				throw std::length_error("Vector range constructor iterator error");
+			_capacity = last - first;
+			_data = _alloc.allocate(_capacity);
+			random_access_iterator<value_type> tmp(first);
+			while (first != last) {
+				push_back(*first++);
+			}
+		}
 		/* Copy constructor *
 		Constructs a container with a copy of each of the elements in x, in the same order. */
 		vector (const vector& x): _alloc(x._alloc), _size(x._size), _capacity(x._capacity) {
@@ -108,7 +121,7 @@ namespace ft {
 			for (; _size > n; _size--) { _alloc.destroy(&_data[_size - 1]); }
 			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size]); _data[_size] = val; } //need tests
 			if (n > capacity()) {
-				reallocate(n > capacity() * 2 ? n : capacity() * 2);
+				reserve(n > capacity() * 2 ? n : capacity() * 2);
 				while (_size <= n) { _alloc.construct(&_data[_size++], val); }
 				_size = n;
 			}
@@ -136,33 +149,17 @@ namespace ft {
 		* This function has no effect on the vector size and cannot alter its elements.*/
 		void reserve (size_type n) {
 			if (n > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
-			if (n > capacity()) { reallocate(n); }
-		}
-
-	private:
-		//custom member function
-		void reallocate(size_type new_capacity) {
-			pointer tmp = _alloc.allocate(new_capacity);
-			for (size_type i = 0; i < _size && i < new_capacity; i++) { tmp[i] = _data[i]; }
-			while (_size > new_capacity) {
-				_alloc.destroy(&_data[_size - 1]);
-				_size--;
+			if (n > capacity()) {
+				pointer tmp = _alloc.allocate(n);
+				for (size_type i = 0; i < _size && i < n; i++) { tmp[i] = _data[i]; }
+				while (_size > n) {
+					_alloc.destroy(&_data[_size - 1]);
+					_size--;
+				}
+				_alloc.deallocate(_data, _capacity);
+				_capacity = n;
+				_data = tmp;
 			}
-			_alloc.deallocate(_data, _capacity);
-			_capacity = new_capacity;
-			_data = tmp;
-		}
-
-		void reallocate_cleanly(size_type new_capacity) {
-			pointer tmp = _alloc.allocate(new_capacity);
-			pop_all();
-			_alloc.deallocate(_data, _capacity);
-			_capacity = new_capacity;
-			_data = tmp;
-		}
-
-		void pop_all() {
-			while (!empty()) { pop_back(); }
 		}
 
 	public:
@@ -220,7 +217,9 @@ namespace ft {
 //		const_reference back() const {
 //			return _data[_size - 1];		}
 
-		//Modifiers:
+		/********
+		 ********	MODIFIERS:
+		 ********/
 
 		/*  Assign vector content *
 		* Assigns new contents to the vector, replacing its current contents, and modifying its size accordingly.
@@ -231,9 +230,9 @@ namespace ft {
 
 		/*  The new contents are n elements, each initialized to a copy of val. */
 		void assign (size_type n, const value_type& val) {
-			pop_all();
 			if (n > capacity())
-				reallocate_cleanly(n);
+				reserve(n);
+			clear();
 			while (_size < n) { _alloc.construct(&_data[_size++], val) ;}
 		}
 
@@ -243,7 +242,7 @@ namespace ft {
 		* This effectively increases the container size by one, which causes an automatic reallocation of the
 		* allocated storage space if -and only if- the new vector size surpasses the current vector capacity.*/
 		void push_back (const value_type& val) {
-			if (_size == _capacity) { _capacity ? reallocate(_capacity * 2) : reallocate(1) ;}
+			if (_size == _capacity) { _capacity ? reserve(_capacity * 2) : reserve(1) ;}
 			_alloc.construct(_data + _size, val);
 			_size++;
 		}
@@ -256,13 +255,57 @@ namespace ft {
 			_size--;
 		}
 
-		iterator begin() {return _data;}
-		iterator end() {return _data + _size; }
+		/*	Insert elements *
+		* The vector is extended by inserting new elements before the element at the specified position,
+		* effectively increasing the container size by the number of elements inserted.
+		* This causes an automatic reallocation of the allocated storage space if -and only if-
+		* the new vector size surpasses the current vector capacity. */
 
-		pointer getData() const {
-			return _data;
+		/*	single element */
+		iterator insert (const_iterator position, const value_type& val) {
+			difference_type ind = position - begin();
+			insert(position, 1, val);
+			return _data + ind;
 		}
 
+		/* fill */
+		void insert (const_iterator position, size_type n, const value_type& val) {
+			size_type start_pos = position - begin();
+			if (position == end()) {
+				if (size() + n > capacity() + 1)
+					reserve(size() + n);
+				for (size_type i = 0; i < n; i++)
+					push_back(val);
+				return ;
+			}
+			/* not using reserve for not iterate 2 times on data */
+			pointer tmp_data;
+			size_type copied_elem = 0;
+			size() + n > capacity() ? tmp_data = _alloc.allocate(size() + n) :
+					tmp_data = _alloc.allocate(_capacity);
+			for (; copied_elem < start_pos; copied_elem++)
+				tmp_data[copied_elem] = _data[copied_elem];
+			for (; copied_elem - start_pos < n; copied_elem++)
+				_alloc.construct(tmp_data + copied_elem, val);
+			for (; copied_elem < _size + n; copied_elem++)
+				tmp_data[copied_elem] = _data[copied_elem - n];
+			_alloc.deallocate(_data, capacity());
+			_data = tmp_data;
+			if (size() + n > capacity()) { _capacity = size() + n; }
+			_size += n;
+		}
+
+		/* Clear content	*
+		* Removes all elements from the vector (which are destroyed), leaving the container with a size of 0.
+		* A reallocation is not guaranteed to happen. */
+		void clear() {
+			while (!empty()) { pop_back(); }
+		}
+
+		iterator begin() {return _data;}
+		iterator end() {return _data + _size; }
+		const_iterator begin() const { return _data; }
+		const_iterator end() const { return _data + _size; }
 
 	};
 }

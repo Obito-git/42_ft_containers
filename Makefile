@@ -7,7 +7,7 @@ OBJ/OBJECTS		=	$(patsubst $(SRCS_DIR)%.cpp, obj/%.o, $(SRCS))
 SRCS	:= $(foreach file,$(SRCS),$(SRCS_DIR)$(file))
 
 all: $(NAME)
-	
+
 obj/%.o: $(SRCS_DIR)%.cpp Makefile | obj
 	$(CC) $(CFLAGS) -c -o $@ $<
 
@@ -20,6 +20,8 @@ obj:
 clean:
 	rm -rf obj
 	rm -f .*.swp
+	rm -f ft
+	rm -f std
 
 fclean: clean
 	rm -f $(NAME)

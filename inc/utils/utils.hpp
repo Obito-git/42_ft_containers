@@ -7,13 +7,11 @@
 #include "null_pointer.hpp"
 
 namespace ft{
-	template<bool>
+	template <bool B>
 	struct enable_if {};
 
-	template<>
-	struct enable_if<true> {
-		using type = void;
-	};
+	template <>
+	struct enable_if<true> { typedef int type; };
 
 	template <class T> struct is_integral { static const bool value = false; };
 	template<> struct is_integral<bool> { static const bool value = true; };
