@@ -2,7 +2,8 @@ NAME = a.out
 CC = c++
 CFLAGS = -Wall -Werror -Wextra -std=c++98 -g3 -Iinc
 SRCS_DIR = srcs/
-SRCS = main.cpp
+VT = vector_test
+SRCS = main.cpp $(VT)/random_access_operator_test.cpp $(VT)/constructor_destructor_test.cpp
 OBJ/OBJECTS		=	$(patsubst $(SRCS_DIR)%.cpp, obj/%.o, $(SRCS))
 SRCS	:= $(foreach file,$(SRCS),$(SRCS_DIR)$(file))
 
@@ -16,6 +17,7 @@ $(NAME): $(OBJ/OBJECTS)
 
 obj:
 	mkdir obj
+	mkdir obj/vector_test
 
 clean:
 	rm -rf obj

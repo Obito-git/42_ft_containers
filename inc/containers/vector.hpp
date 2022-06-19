@@ -135,7 +135,7 @@ namespace ft {
 			return _capacity;
 		}
 
-		/*  Test whether vector is empty *
+		/*  LeakTest whether vector is empty *
 		 * Returns whether the vector is empty (i.e. whether its size is 0). */
 		bool empty() const {
 			return _size == 0;
@@ -335,7 +335,7 @@ namespace ft {
 			{
 				if (_size + n > _size * 2)
 					_capacity = _size + n;
-				else if (_capacity == 0)
+				else if (_size == 0)
 					_capacity = 1;
 				else
 					_capacity *= 2;
@@ -344,7 +344,7 @@ namespace ft {
 			for (; copied_elem < start_pos; copied_elem++)
 				tmp_data[copied_elem] = _data[copied_elem];
 			for (InputIterator it = first; it != last; it++, copied_elem++)
-				_alloc.construct(tmp_data + copied_elem, it);
+				_alloc.construct(tmp_data + copied_elem, *it);
 			for (; copied_elem < _size + n; copied_elem++)
 				tmp_data[copied_elem] = _data[copied_elem - n];
 			_alloc.deallocate(_data, capacity());

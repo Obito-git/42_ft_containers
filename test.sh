@@ -1,5 +1,6 @@
-sed -i -e 's/ ft;/ std;/g' srcs/main.cpp
+#!/bin/bash
+find . -type f -name '*.cpp' -exec sed -i 's/using namespace ft;/using namespace std;/g' {} \;
 make re && ./a.out > std
-sed -i -e 's/ std;/ ft;/g' srcs/main.cpp
+find . -type f -name '*.cpp' -exec sed -i 's/using namespace std;/using namespace ft;/g' {} \;
 make re && ./a.out > ft
 diff ft std

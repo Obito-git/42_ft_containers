@@ -1,111 +1,15 @@
-#include <vector>
-#include <iostream>
 #include <string>
-#include "containers/vector.hpp"
-
-class Test {
-public:
-	int i;
-	int *a;
-	Test() {
-		a = new int;
-	}
-	Test(const Test& t) {
-		std::cout << "cpy" << std::endl;
-		a = new int;
-		(void) t;
-	}
-	Test(int ii) : i(ii){
-		std::cout << "const" << std::endl;
-		a = new int;
-	}
-
-	virtual ~Test() {
-		std::cout << "dest" << std::endl;
-		delete a;
-	}
-};
+#include "ft_containers_test.hpp"
 
 using namespace ft;
-template <typename T>
-void test_print(T t) {
-	(void) t;
-	//std::cout << t << std::endl;
-}
 
-int main1() {
-	vector<int> a(100, 100);
-	vector<int> b(100, 222);
-	vector<int>::iterator it = b.begin();
-	a.assign(it, it + 5);
-	std::cout << "!!!!!!!!!!!! " << it - b.begin() << std::endl;
-	return (0);
-}
+
+
 
 int main()
 {
-	/***************** RANDOM ACCESS OPERATOR *************************************/
-	/******************************************************************************/
-	vector<int> a(5);
-	for (int i = 0; i < 10; i++)
-		a.push_back(i);
-	vector<int>::iterator beg = a.begin();
-	vector<int>::const_iterator const_beg = a.begin();
-	vector<int>::iterator end = a.end() - 1;
-	vector<int>::const_iterator const_end = a.end() - 1;
-
-	//equality operators:
-	test_print(beg == const_beg);
-	test_print(beg != const_beg);
-	test_print(beg > const_beg);
-	test_print(beg < const_beg);
-	test_print(beg >= const_beg);
-	test_print(beg <= const_beg);
-
-
-	test_print(end == const_end);
-	test_print(end != const_end);
-	test_print(end > const_end);
-	test_print(end < const_end);
-	test_print(end >= const_end);
-	test_print(end <= const_end);
-
-
-	test_print(beg == const_end);
-	test_print(beg != const_end);
-	test_print(beg > const_end);
-	test_print(beg < const_end);
-	test_print(beg >= const_end);
-	test_print(beg <= const_end);
-
-
-	test_print(end == const_beg);
-	test_print(end != const_beg);
-	test_print(end > const_beg);
-	test_print(end < const_beg);
-	test_print(end >= const_beg);
-	test_print(end <= const_beg);
-
-
-	//addition / subtraction
-	test_print(*(end - 5));
-	test_print(*beg++);
-	test_print(*const_beg++);
-	test_print(*beg);
-	*(beg -1) = 42;
-	test_print(*const_beg);
-	test_print(*--beg);
-	test_print(*--const_beg);
-	test_print(*end);
-	test_print(*(const_beg + 1));
-	test_print(const_end - const_beg);
-	test_print(const_end - const_beg - 3);
-	test_print(const_end - const_beg + 32);
-	*(beg + 4) = 999;
-	beg += 4;
-	test_print(*beg);
-	beg[const_end - const_beg] = 222;
-	test_print(beg[const_end - const_beg]);
+	random_access_iterator_test();
+	constructor_destructor_test();
 
 	/******************* VECTOR ************************/
 	vector<int> vect(5, 2);
@@ -123,7 +27,7 @@ int main()
 	//const_beg[0] = 10;
 
 
-	/************************ INSERT ********************/
+	/************************ INSERT ********************
 	vector<int> test(10, 1);
 	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
 	vector<int>::iterator it = test.end();
@@ -149,6 +53,24 @@ int main()
 	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
 	for (it = test.begin(); it != test.end(); it++)
 		std::cout << *it << std::endl;
+	//insert iterator test
+	vector<int> tmp;
+	for (int i = 0; i < 1000000; i++)
+		tmp.push_back(i);
+	std::cout << "size: " << tmp.size() << " capacity: " << tmp.capacity() << std::endl;
+	test.insert(test.begin(), tmp.begin(), tmp.begin() + 3000);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.begin() + 1777, tmp.begin() + 3000 , tmp.begin() + 6000);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
+	test.insert(test.end(), tmp.begin() + 6000 , tmp.begin() + 66666);
+	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
+	for (it = test.begin(); it != test.end(); it++)
+		std::cout << *it << std::endl;
 
+*/
 	return 0;
 }
