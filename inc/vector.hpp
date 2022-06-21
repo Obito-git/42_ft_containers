@@ -92,8 +92,11 @@ namespace ft {
 		* This destroys all container elements, and deallocates all the storage capacity allocated
 		* by the vector using its allocator. */
 		virtual ~vector() {
-			for (size_type i = 0; i < _size; i++)
-				_alloc.destroy(_data + i);
+			for (size_type i = 0; i < _size; i++) {
+				try {
+					_alloc.destroy(_data + i);
+				} catch (std::exception& e) {}
+			}
 			_alloc.deallocate(_data, _capacity);
 		}
 
@@ -164,12 +167,8 @@ namespace ft {
 			if (n + _capacity > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
 			if (n > capacity()) {
 				pointer tmp = _alloc.allocate(n);
-				for (size_type i = 0; i < _size && i < n; i++) { tmp[i] = _data[i]; }
-				while (_size > n) {
-					_alloc.destroy(&_data[_size - 1]);
-					_size--;
-				}
-				_alloc.deallocate(_data, _capacity);
+				for (size_type i = 0; i < _size && i < n; i++) { _alloc.construct(tmp + i, _data[i]); }
+				this->~vector();
 				_capacity = n;
 				_data = tmp;
 			}
@@ -325,12 +324,12 @@ namespace ft {
 			}
 			tmp_data = _alloc.allocate(_capacity);
 			for (; copied_elem < start_pos; copied_elem++)
-				tmp_data[copied_elem] = _data[copied_elem];
+				_alloc.construct(tmp_data + copied_elem, _data[copied_elem]);
 			for (; copied_elem - start_pos < n; copied_elem++)
 				_alloc.construct(tmp_data + copied_elem, val);
 			for (; copied_elem < _size + n; copied_elem++)
-				tmp_data[copied_elem] = _data[copied_elem - n];
-			_alloc.deallocate(_data, capacity());
+				_alloc.construct(tmp_data + copied_elem, _data[copied_elem - n]);
+			this->~vector();
 			_data = tmp_data;
 			_size += n;
 		}
