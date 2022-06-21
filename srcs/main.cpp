@@ -3,21 +3,26 @@
 
 using namespace ft;
 
-
-
-
 int main()
 {
-	random_access_iterator_test();
-	constructor_destructor_test();
-
 	/******************* VECTOR ************************/
-	vector<int> vect(5, 2);
-	vect.assign(10, 1);
-	std::cout << vect.capacity() << std::endl;
-	vector<int>::const_iterator i1 = vect.begin();
-	for (; i1 != vect.end(); i1++)
-		std::cout << *i1 << std::endl;
+	//random_access_iterator_test();
+	//constructor_destructor_test();
+	//capacity_test();
+	//access_test();
+	//erase_test();
+
+	vector<int> test;
+	test.reserve(10);
+	for (int i = 100; i < 110; i++)
+		test.push_back(i);
+	vector<int>::reverse_iterator rit = test.rbegin();
+	vector<int>::const_reverse_iterator rit_const = test.rbegin();
+	//vector<int>::iterator it = test.begin();
+	//vector<int>::const_iterator it_const = test.begin();
+	if (rit_const == rit_const)
+		std::cout << "hello" << std::endl;
+
 
 
 	// errors

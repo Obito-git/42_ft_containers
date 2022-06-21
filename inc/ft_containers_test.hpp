@@ -5,8 +5,10 @@
 #ifndef FT_CONTAINER_FT_CONTAINERS_TEST_HPP
 #define FT_CONTAINER_FT_CONTAINERS_TEST_HPP
 #include "containers/vector.hpp"
+#include "utils/pair.hpp"
 #include <vector>
 #include <iostream>
+#include <string>
 
 template <typename T>
 void test_print(T t) {
@@ -15,9 +17,9 @@ void test_print(T t) {
 
 template <typename T>
 void test_vector_print(T& t) {
-	std::cout << "size " << t.size() << " capacity " << t.capacity() << std::endl;
 	for (typename T::iterator it = t.begin(); it != t.end(); it++)
 		std::cout << *it << std::endl;
+	std::cout << "size " << t.size() << " capacity " << t.capacity() << std::endl;
 }
 
 class LeakTest {
@@ -38,6 +40,14 @@ public:
 		*a = ii;
 	}
 
+	LeakTest &operator=(const LeakTest& other) {
+		if (&other != this) {
+			a = new int;
+			*a = *other.a;
+		}
+		return *this;
+	}
+
 	friend std::ostream &operator<<(std::ostream &os, const LeakTest &test) {
 		os << *test.a;
 		return os;
@@ -54,6 +64,9 @@ public:
 
 void random_access_iterator_test();
 void constructor_destructor_test();
+void capacity_test();
+void access_test();
+void erase_test();
 
 
 #endif //FT_CONTAINER_FT_CONTAINERS_TEST_HPP

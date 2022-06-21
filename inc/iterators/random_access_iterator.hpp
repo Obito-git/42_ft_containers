@@ -8,7 +8,6 @@
 
 //https://m.cplusplus.com/reference/iterator/RandomAccessIterator/
 
-#include <iostream>
 namespace ft {
 	template <typename T>
 	class random_access_iterator : public iterator<ft::random_access_iterator_tag, T> {
@@ -25,7 +24,7 @@ namespace ft {
 			_ptr = other._ptr;
 		}
 		random_access_iterator(pointer ptr): _ptr(ptr) {}
-		random_access_iterator &operator=(const random_access_iterator& other) {
+		random_access_iterator &operator=(const random_access_iterator<T>& other) {
 				 if (this == &other) { return *this; }
 				 _ptr = other._ptr;
 				 return *this;
@@ -35,8 +34,8 @@ namespace ft {
 		/*************************** CONSTANT MEMBER FUNCTION ************************************/
 
 		/* equality operators */
-		//bool operator==(const random_access_iterator &other) const { return _ptr == other._ptr; }
-		//bool operator!=(const random_access_iterator &other) const { return _ptr != other._ptr; }
+		bool operator==(const random_access_iterator &other) const { return _ptr == other._ptr; }
+		bool operator!=(const random_access_iterator &other) const { return _ptr != other._ptr; }
 
 		/* dereferences */
 		const_reference operator*() const { return *_ptr; }
@@ -51,12 +50,11 @@ namespace ft {
 		random_access_iterator operator+(difference_type n) const { return _ptr + n; }
 		random_access_iterator operator-(difference_type other) const { return _ptr - other; }
 
-		/* relational operators
+		/* relational operators */
 		bool operator<(const random_access_iterator &other) const { return _ptr < other._ptr; }
 		bool operator>(const random_access_iterator &other) const { return _ptr > other._ptr; }
 		bool operator<=(const random_access_iterator &other) const { return _ptr <= other._ptr; }
 		bool operator>=(const random_access_iterator &other) const { return _ptr >= other._ptr; }
-		*/
 
 		/* compound assignment operations */
 		void operator+=(difference_type n) { _ptr += n; }
@@ -70,33 +68,6 @@ namespace ft {
 		reference operator*() { return *_ptr; }
 		pointer operator->() { return _ptr; }
 
-		/*********************************** NOT MEMBER FUNCTION *********************************************/
-
-		friend random_access_iterator operator+(difference_type n, const random_access_iterator& other) {
-			return other._ptr + n;
-		}
-		friend difference_type operator-(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr - b._ptr;
-		}
-		/* equality and relational operators */
-		friend bool operator==(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr == b._ptr;
-		}
-		friend bool operator!=(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr != b._ptr;
-		}
-		friend bool operator>(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr > b._ptr;
-		}
-		friend bool operator<(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr < b._ptr;
-		}
-		friend bool operator>=(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr >= b._ptr;
-		}
-		friend bool operator<=(const random_access_iterator& a, const random_access_iterator& b) {
-			return a._ptr <= b._ptr;
-		}
 
 		/* convertion from const */
 		operator random_access_iterator<const T>() const {
@@ -106,6 +77,47 @@ namespace ft {
 		pointer _ptr;
 	};
 
+	/*********************************** NOT MEMBER FUNCTION *********************************************/
+
+
+	template <typename T>
+	random_access_iterator<T> operator+(typename random_access_iterator<T>::difference_type n,
+			const random_access_iterator<T>& other) {
+		return other + n;
+	}
+	template <typename T1, typename T2>
+	typename random_access_iterator<T1>::difference_type operator-(const ft::random_access_iterator<T1>& a,
+			const random_access_iterator<T2>& b) {
+		return &*a - &*b;
+	}
+	/* equality and relational operators */
+	template <typename T1, typename T2>
+	bool operator==(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+		return &*a == &*b;
+	}
+
+	template <typename T1, typename T2>
+	bool operator!=(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+		return &*a != &*b;
+	}
+
+	template <typename T1, typename T2>
+	bool operator>(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+	   return &*a > &*b;
+   }
+
+	template <typename T1, typename T2>
+	bool operator<(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+	   return &*a < &*b;
+   }
+	template <typename T1, typename T2>
+	bool operator>=(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+	   return &*a >= &*b;
+   }
+	template <typename T1, typename T2>
+	bool operator<=(const random_access_iterator<T1>& a, const random_access_iterator<T2>& b) {
+	   return &*a <= &*b;
+   }
 
 }
 
