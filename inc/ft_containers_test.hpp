@@ -4,8 +4,8 @@
 
 #ifndef FT_CONTAINER_FT_CONTAINERS_TEST_HPP
 #define FT_CONTAINER_FT_CONTAINERS_TEST_HPP
-#include "containers/vector.hpp"
-#include "utils/pair.hpp"
+#include "vector.hpp"
+#include "pair.hpp"
 #include <vector>
 #include <iostream>
 #include <string>

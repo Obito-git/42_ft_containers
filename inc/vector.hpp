@@ -7,10 +7,10 @@
 #include <iostream>
 #include <memory>
 #include <stdexcept>
-#include "utils/utils.hpp"
-#include "iterators/random_access_iterator.hpp"
-#include "iterators/reverse_iterator.hpp"
-#include "utils/algorithm.hpp"
+#include "utils.hpp"
+#include "random_access_iterator.hpp"
+#include "reverse_iterator.hpp"
+#include "algorithm.hpp"
 
 
 namespace ft {
@@ -31,7 +31,7 @@ namespace ft {
 		typedef 			ft::random_access_iterator<const value_type> const_iterator;
 
 		typedef ft::reverse_iterator<iterator> reverse_iterator;
-		typedef ft::reverse_iterator<iterator> const_reverse_iterator;
+		typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
 
 	private:
 		pointer         _data;
@@ -115,7 +115,7 @@ namespace ft {
 		* This is the maximum potential size the container can reach due to known system or library implementation limitations,
 		* but the container is by no means guaranteed to be able to reach that size: it can still fail to allocate
 		* storage at any point before that size is reached.*/
-		size_type max_size() {
+		size_type max_size () const {
 			return _alloc.max_size();
 		}
 
@@ -131,7 +131,8 @@ namespace ft {
 		* Notice that this function changes the actual content of the container by inserting or erasing elements from it. */
 		void resize (size_type n, value_type val = value_type()) {
 			for (; _size > n; _size--) { _alloc.destroy(&_data[_size - 1]); }
-			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size]); _data[_size] = val; } //need tests
+			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); } //need tests
+			//for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); _data[_size] = val; } //need tests
 			if (n > capacity()) {
 				reserve(n > capacity() * 2 ? n : capacity() * 2);
 				while (_size <= n) { _alloc.construct(&_data[_size++], val); }
@@ -238,8 +239,8 @@ namespace ft {
 			return _data[_size - 1];
 		}
 		//CONST SHIT
-//		const_reference back() const {
-//			return _data[_size - 1];		}
+		const_reference back() const {
+			return _data[_size - 1];		}
 
 		/********
 		 ********	MODIFIERS:

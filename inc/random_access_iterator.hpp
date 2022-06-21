@@ -4,7 +4,7 @@
 
 #ifndef CONTAINERS_RANDOM_ACCESS_ITERATOR_HPP
 #define CONTAINERS_RANDOM_ACCESS_ITERATOR_HPP
-#include "iterators/iterator.hpp"
+#include "iterator.hpp"
 
 //https://m.cplusplus.com/reference/iterator/RandomAccessIterator/
 
@@ -38,7 +38,7 @@ namespace ft {
 		bool operator!=(const random_access_iterator &other) const { return _ptr != other._ptr; }
 
 		/* dereferences */
-		const_reference operator*() const { return *_ptr; }
+		//const_reference operator*() const { return *_ptr; }
 
 		/* increment / decrement */
 		random_access_iterator& operator++() { _ptr++; return *this; }
@@ -57,15 +57,15 @@ namespace ft {
 		bool operator>=(const random_access_iterator &other) const { return _ptr >= other._ptr; }
 
 		/* compound assignment operations */
-		void operator+=(difference_type n) { _ptr += n; }
-		void operator-=(difference_type n) { _ptr -= n; }
+		random_access_iterator& operator+=(difference_type n) { _ptr += n; return *this; }
+		random_access_iterator& operator-=(difference_type n) { _ptr -= n; return *this; }
 
 		/* the offset dereference operator */
 		const_reference operator[](difference_type pos) const {return *(_ptr + pos); }
 		/*********************************** MEMBER FUNCTION *********************************************/
 
 		reference operator[](difference_type pos) {return *(_ptr + pos); }
-		reference operator*() { return *_ptr; }
+		reference operator*() const { return *_ptr; }
 		pointer operator->() { return _ptr; }
 
 

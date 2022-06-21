@@ -1,5 +1,5 @@
 #include <string>
-#include "ft_containers_test.hpp"
+#include "../inc/ft_containers_test.hpp"
 
 using namespace ft;
 
@@ -17,6 +17,7 @@ int main()
 	for (int i = 100; i < 110; i++)
 		test.push_back(i);
 	vector<int>::reverse_iterator rit = test.rbegin();
+	(void) rit;
 	vector<int>::const_reverse_iterator rit_const = test.rbegin();
 	//vector<int>::iterator it = test.begin();
 	//vector<int>::const_iterator it_const = test.begin();
