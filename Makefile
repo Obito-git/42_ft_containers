@@ -3,7 +3,7 @@ CC = c++
 CFLAGS = -Wall -Werror -Wextra -std=c++98 -g3 
 SRCS_DIR = srcs/
 VT = vector_test
-SRCS = inception_main.cpp \
+SRCS = main.cpp \
 	$(VT)/random_access_operator_test.cpp $(VT)/constructor_destructor_test.cpp \
 	$(VT)/capacity_and_access.cpp $(VT)/modifiers.cpp
 OBJ/OBJECTS		=	$(patsubst $(SRCS_DIR)%.cpp, obj/%.o, $(SRCS))

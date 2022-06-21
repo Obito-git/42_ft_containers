@@ -75,10 +75,13 @@ namespace ft {
 		}
 		/* Copy constructor *
 		Constructs a container with a copy of each of the elements in x, in the same order. */
-		vector (const vector& x): _alloc(x._alloc), _size(x._size), _capacity(x._capacity) {
-			_data = _alloc.allocate(_capacity);
+		vector (const vector& x): _data(null_pointer), _alloc(x._alloc), _size(0), _capacity(0) {
+			this->insert(this->begin(), x.begin(), x.end());
+			/*
+			_data = _alloc.allocate(_capacity);	
 			for (size_type i = 0; i < _capacity; i++)
 				_alloc.construct((_data + i), *(x._data + i));
+				*/
 		}
 
 		vector& operator=(const vector& x) {
@@ -92,11 +95,7 @@ namespace ft {
 		* This destroys all container elements, and deallocates all the storage capacity allocated
 		* by the vector using its allocator. */
 		virtual ~vector() {
-			for (size_type i = 0; i < _size; i++) {
-				try {
-					_alloc.destroy(_data + i);
-				} catch (std::exception& e) {}
-			}
+			for (size_type i = 0; i < _size; i++) { _alloc.destroy(_data + i); }
 			_alloc.deallocate(_data, _capacity);
 		}
 
@@ -138,8 +137,8 @@ namespace ft {
 			//for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); _data[_size] = val; } //need tests
 			if (n > capacity()) {
 				reserve(n > capacity() * 2 ? n : capacity() * 2);
-				while (_size <= n) { _alloc.construct(&_data[_size++], val); }
-				_size = n;
+				for(; _size < n; _size++) { _alloc.construct(_data + _size, val); }
+				_size = n ;
 			}
 		}
 
@@ -164,7 +163,7 @@ namespace ft {
 		*   In all other cases, the function call does not cause a reallocation and the vector capacity is not affected.
 		* This function has no effect on the vector size and cannot alter its elements.*/
 		void reserve (size_type n) {
-			if (n + _capacity > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
+			if (n + _capacity > max_size()) { throw std::length_error("vector::reserve"); }
 			if (n > capacity()) {
 				pointer tmp = _alloc.allocate(n);
 				for (size_type i = 0; i < _size && i < n; i++) { _alloc.construct(tmp + i, _data[i]); }
@@ -176,7 +175,7 @@ namespace ft {
 
 	private:
 		void reserve_cleanly (size_type n) {
-			if (n > max_size()) { throw std::length_error("Requested new size is greater than max size"); }
+			if (n > max_size()) { throw std::length_error("vector::reserve"); }
 			if (n > capacity()) {
 				pointer tmp = _alloc.allocate(n);
 				clear();
@@ -320,7 +319,7 @@ namespace ft {
 				else if (_capacity == 0)
 					_capacity = 1;
 				else
-					_capacity *= 2;
+					_capacity = _size * 2;
 			}
 			tmp_data = _alloc.allocate(_capacity);
 			for (; copied_elem < start_pos; copied_elem++)
