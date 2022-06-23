@@ -5,6 +5,7 @@
 #ifndef CONTAINERS_ITERATOR_HPP
 #define CONTAINERS_ITERATOR_HPP
 #include <cstddef>
+#include "null_pointer.hpp"
 
 namespace ft {
 	/* Iterator category's */

@@ -1,6 +1,11 @@
 #include <string>
+#include <stack>
 #include "../inc/ft_containers_test.hpp"
-
+#include "../inc/stack.hpp"
+#include "../inc/map.hpp"
+#include "../inc/RBT_iterator.hpp"
+#include <string>
+#include <map>
 using namespace ft;
 
 int main()
@@ -12,26 +17,23 @@ int main()
 	//access_test();
 	//erase_test();
 
-	vector<int> test;
-	test.reserve(10);
-	for (int i = 100; i < 110; i++)
-		test.push_back(i);
-	vector<int>::reverse_iterator rit = test.rbegin();
-	(void) rit;
-	vector<int>::const_reverse_iterator rit_const = test.rbegin();
-	//vector<int>::iterator it = test.begin();
-	//vector<int>::const_iterator it_const = test.begin();
-	if (rit_const == rit_const)
-		std::cout << "hello" << std::endl;
+	/******************* STACK ************************/
+	//vector<int> test;
+	//stack<int, vector<int> > a(test);
+	//std::cout << (a.empty() ? "true" : "false") << std::endl;
+	//std::cout << (a.top()) << std::endl;
 
+	/****************** MAP **********************/
+	map<int, int> test;
+	test.insert(make_pair(24, 100));
+	test.insert(make_pair(5, 600));
+	test.insert(make_pair(1, 600));
+	test.insert(make_pair(15, 600));
+	test.insert(make_pair(3, 600));
+	test.insert(make_pair(8, 600));
 
-
-	// errors
-	//test(const_beg + const_end);
-	//test(10 - const_beg);
-	// *const_beg = 10;
-	//const_beg[0] = 10;
-
+	std::cout << (test) << std::endl;
+	std::cout << (*test.begin()).first << std::endl;
 
 	/************************ INSERT ********************
 	vector<int> test(10, 1);

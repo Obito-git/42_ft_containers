@@ -5,7 +5,8 @@
 #ifndef CONTAINERS_PAIR_HPP
 #define CONTAINERS_PAIR_HPP
 namespace ft {
-	template <class T1, class T2> struct pair {
+	template <class T1, class T2>
+	struct pair {
 		typedef T1 first_type;
 		typedef T2 second_type;
 
@@ -14,7 +15,7 @@ namespace ft {
 
 		/*	default constructor *
 		* Constructs a pair object with its elements value-initialized.*/
-		pair() { first(first_type(), second()); }
+		pair() :first(), second() {}
 
 		/*	copy / move constructor (and implicit conversion) *
 		* The object is initialized with the contents of the pr pair object.
