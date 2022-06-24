@@ -25,16 +25,36 @@ int main()
 
 	/****************** MAP **********************/
 	map<int, int> test;
-	test.insert(make_pair(24, 100));
-	test.insert(make_pair(5, 600));
-	test.insert(make_pair(1, 600));
+	test.insert(make_pair(100, 100));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(500, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(900, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(99, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(90, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(110, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(120, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(130, 600));
+	std::cout << (test) << std::endl;
+	/*
 	test.insert(make_pair(15, 600));
-	test.insert(make_pair(3, 600));
-	test.insert(make_pair(8, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(30, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(31, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(32, 600));
+	std::cout << (test) << std::endl;
+	test.insert(make_pair(33, 600));
 
 	std::cout << (test) << std::endl;
 	std::cout << (*test.begin()).first << std::endl;
-
+*/
 	/************************ INSERT ********************
 	vector<int> test(10, 1);
 	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;

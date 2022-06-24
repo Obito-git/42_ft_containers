@@ -37,8 +37,18 @@ namespace ft {
 		}
 
 
-		static void right_turn() {}
-		static void color_swap() {}
+		RB_node* get_gparent_node() {
+			if (!parent)
+				return null_pointer;
+			return parent->parent;
+		}
+		RB_node* get_aunt_node() {
+			if (!get_gparent_node())
+				return null_pointer;
+			if (get_gparent_node()->right == parent)
+				return get_gparent_node()->left;
+			return get_gparent_node()->right;
+		}
 
 		Key &key() { return node_data.first; }
 
