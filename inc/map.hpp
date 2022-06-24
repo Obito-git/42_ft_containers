@@ -101,35 +101,7 @@ namespace ft {
 		}
 		 */
 
-		void right_left_rotation(node* cur) {
-			std::cout << "rlr" << std::endl;
-			if (cur->get_gparent_node() == root)
-				root = cur;
-			node* cur_tmp_left = cur->left;
-			node* cur_tmp_right = cur->right;
-			node* tmp_par = cur->get_gparent_node();
-			if (tmp_par->parent) {
-				if (tmp_par->parent->left == tmp_par)
-					tmp_par->parent->left = cur;
-				else if (tmp_par->parent->right == tmp_par)
-					tmp_par->parent->right = cur;
-			}
 
-			cur->right = cur->parent;
-			cur->right->left = cur_tmp_left; //leaf
-			cur->right->left->parent = cur->right; //leaf
-			cur->right->parent = cur;
-
-			cur->left = tmp_par;
-			cur->left->right = cur_tmp_right;
-			cur->left->right->parent = cur->left;
-			cur->parent = tmp_par->parent;
-
-			cur->left->parent = cur;
-			cur->is_red = false;
-			cur->left->is_red = true;
-			cur->right->is_red = true;
-		}
 
 		void left_right_rotation(node* cur) {
 			std::cout << "lrr" << std::endl;
@@ -161,51 +133,7 @@ namespace ft {
 			cur->right->is_red = true;
 		}
 
-		void right_rotation(node *cur) {
-			std::cout << "rr" << std::endl;
-			if (cur->get_gparent_node() == root)
-				root = cur->parent;
-			node* tmp_right = cur->parent->right;
-			node* tmp_parent = cur->get_gparent_node()->parent;
-			if (cur->get_gparent_node()->parent) {
-				if (cur->get_gparent_node()->parent->left == cur->get_gparent_node())
-					cur->get_gparent_node()->parent->left = cur->parent;
-				else if (cur->get_gparent_node()->parent->right == cur->get_gparent_node())
-					cur->get_gparent_node()->parent->right = cur->parent;
-			}
 
-			cur->parent->right = cur->get_gparent_node();
-			cur->parent->right->parent = cur->parent;
-			cur->parent->right->left = tmp_right; // leaf
-			cur->parent->right->left->parent = cur->parent->right; //leaf
-			cur->parent->parent = tmp_parent;
-			cur->is_red = true;
-			cur->parent->is_red = false;
-			cur->parent->right->is_red = true;
-		}
-
-		void left_rotation(node *cur) {
-			std::cout << "lr" << std::endl;
-			if (cur->get_gparent_node() == root)
-				root = cur->parent;
-			node* tmp_left = cur->parent->left;
-			node* tmp_parent = cur->get_gparent_node()->parent;
-			if (cur->get_gparent_node()->parent) {
-				if (cur->get_gparent_node()->parent->left == cur->get_gparent_node())
-					cur->get_gparent_node()->parent->left = cur->parent;
-				else if (cur->get_gparent_node()->parent->right == cur->get_gparent_node())
-					cur->get_gparent_node()->parent->right = cur->parent;
-			}
-
-			cur->parent->left = cur->get_gparent_node();
-			cur->parent->left->parent = cur->parent;
-			cur->parent->left->right = tmp_left; //leaf
-			cur->parent->left->right->parent = cur->parent->left; // leaf
-			cur->parent->parent = tmp_parent;
-			cur->is_red = true;
-			cur->parent->is_red = false;
-			cur->parent->left->is_red = true;
-		}
 
 
 		void color_swap(node* current) {
@@ -224,27 +152,22 @@ namespace ft {
 
 		void balance(node *current) {
 			while (current) {
-				if (current->get_gparent_node() && current->get_aunt_node()->is_red && current->is_red && current->parent->is_red)
-					color_swap(current->get_gparent_node());
+				//if (current->get_gparent_node() && current->get_aunt_node()->is_red && current->is_red && current->parent->is_red)
+				//	color_swap(current->get_gparent_node());
 				if ((current->get_gparent_node()) && (current->is_red && current->parent->left == current)
-					&& (current->parent->is_red && current->get_gparent_node()->right == current->parent)
-					&& !current->get_aunt_node()->is_red)
-					right_left_rotation(current); //продолжаем с другой стороны(правильно??))
-				if ((current->get_gparent_node()) && (current->is_red && current->parent->right == current)
-					&& (current->parent->is_red && current->get_gparent_node()->right == current->parent)
-					&& !current->get_aunt_node()->is_red)
-					left_rotation(current);
-				if ((current->get_gparent_node()) && (current->is_red && current->parent->right == current)
-					&& (current->parent->is_red && current->get_gparent_node()->left == current->parent)
-					&& !current->get_aunt_node()->is_red)
-					left_right_rotation(current); //продолжаем с другой стороны(правильно??))
-				if ((current->get_gparent_node()) && (current->is_red && current->parent->left == current)
-					&& (current->parent->is_red && current->get_gparent_node()->left == current->parent)
-					&& !current->get_aunt_node()->is_red)
-					right_rotation(current);
-				//if ((insered->right && insered->right->right) &&
-				//	insered->right->is_red && insered->right->right->is_red)
-				//	left_turn(insered->right); //продолжаем с другой стороны(правильно??))
+						&& (current->parent->is_red && current->get_gparent_node()->left == current->parent))
+					current->right_rotation(&root); //FIXME maybe need to return new pointer to update current;
+				else if ((current->get_gparent_node()) && (current->is_red && current->parent->right == current)
+					    && (current->parent->is_red && current->get_gparent_node()->left == current->parent)
+						&& (!current->parent->left->is_red))
+					current->left_right_rotation(&root);
+				else if ((current->get_gparent_node()) && (current->is_red && current->parent->right == current)
+				        && (current->parent->is_red && current->get_gparent_node()->right == current->parent))
+					current->left_rotation(&root);
+				else if ((current->get_gparent_node()) && (current->is_red && current->parent->left == current)
+				        && (current->parent->is_red && current->get_gparent_node()->right == current->parent)
+				        && (!current->parent->right->is_red))
+					current->right_left_rotation(&root);
 				current = current->parent;
 			}
 		}

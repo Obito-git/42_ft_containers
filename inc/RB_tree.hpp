@@ -36,7 +36,114 @@ namespace ft {
 			return *this;
 		}
 
+		void color_flip(RB_node **root) {
+			parent->is_red = false;
+			if (*root != get_gparent_node())
+				get_gparent_node()->is_red = true;
+			get_aunt_node()->is_red = false;
+		}
 
+		void right_rotation(RB_node **root) {
+			std::cout << "r" << std::endl;
+			RB_node* parent_tmp = get_gparent_node()->parent;
+			// if (aunt red) color flip
+			if (get_aunt_node()->is_red) { //color flip
+				color_flip(root);
+			} else {
+				//relink node bcs of grandparent changing
+				if (!get_gparent_node()->parent)
+					*root = parent;
+				else {
+					if (get_gparent_node()->parent->left == get_gparent_node())
+						get_gparent_node()->parent->left = parent;
+					else
+						get_gparent_node()->parent->right = parent;
+				}
+				RB_node* tmp = parent->right; //saving pa right child
+				tmp->parent = get_gparent_node(); //swap
+				parent->right = get_gparent_node();
+				parent->right->parent = parent;
+				parent->right->left = tmp;
+				parent->right->is_red = true;
+				parent->is_red = false;
+				parent->parent = parent_tmp;
+			}
+		}
+
+		void left_rotation(RB_node **root) {
+			std::cout << "l" << std::endl;
+			RB_node* parent_tmp = get_gparent_node()->parent;
+			// if (aunt red) color flip
+			if (get_aunt_node()->is_red) { //color flip
+				color_flip(root);
+			} else {
+				//relink node bcs of grandparent changing
+				if (!get_gparent_node()->parent)
+					*root = parent;
+				else {
+					if (get_gparent_node()->parent->left == get_gparent_node())
+						get_gparent_node()->parent->left = parent;
+					else
+						get_gparent_node()->parent->right = parent;
+				}
+				RB_node* tmp = parent->left; //saving pa right child
+				tmp->parent = get_gparent_node(); //swap
+				parent->left = get_gparent_node();
+				parent->left->parent = parent;
+				parent->left->right = tmp;
+				parent->left->is_red = true;
+				parent->is_red = false;
+				parent->parent = parent_tmp;
+			}
+		}
+
+		void left_right_rotation(RB_node **root) {
+			std::cout << "lr" << std::endl;
+			if (get_aunt_node()->is_red) {
+				color_flip(root);
+			} else {
+				RB_node* tmp_left = left;
+				tmp_left->parent = parent;
+				left = parent;
+				parent = get_gparent_node();
+				parent->left->parent = this;
+				parent->left = this;
+				left->right = tmp_left;
+				left->right_rotation(root);
+			}
+		}
+
+		void right_left_rotation(RB_node **root) {
+			std::cout << "rl" << std::endl;
+			if (get_aunt_node()->is_red) {
+				color_flip(root);
+			} else {
+				RB_node* tmp_right = right;
+				tmp_right->parent = parent;
+				right = parent;
+				parent = get_gparent_node();
+				parent->right->parent = this;
+				parent->right = this;
+				right->left = tmp_right;
+				right->left_rotation(root);
+			}
+		}
+
+
+
+
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		
+		/*********** GETTERS ******************/
 		RB_node* get_gparent_node() {
 			if (!parent)
 				return null_pointer;
@@ -68,7 +175,7 @@ namespace ft {
 					os << node.parent->node_data.first;
 				else
 					os << "ROOT";
-				os << "]))"RESET;
+				os << "]))" << RESET;
 			}
 			return os;
 		}

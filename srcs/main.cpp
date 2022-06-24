@@ -25,22 +25,23 @@ int main()
 
 	/****************** MAP **********************/
 	map<int, int> test;
-	test.insert(make_pair(100, 100));
+	test.insert(make_pair(155, 100));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(500, 600));
+	test.insert(make_pair(133, 600));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(900, 600));
+	test.insert(make_pair(177, 100));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(99, 600));
+	test.insert(make_pair(166, 100));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(90, 600));
+	test.insert(make_pair(167, 600));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(110, 600));
+	test.insert(make_pair(200, 600));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(120, 600));
+	test.insert(make_pair(300, 600));
 	std::cout << (test) << std::endl;
-	test.insert(make_pair(130, 600));
+	test.insert(make_pair(180, 600));
 	std::cout << (test) << std::endl;
+	test.begin();
 	/*
 	test.insert(make_pair(15, 600));
 	std::cout << (test) << std::endl;
