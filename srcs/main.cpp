@@ -26,22 +26,27 @@ int main()
 	/****************** MAP **********************/
 	map<int, int> test;
 	test.insert(make_pair(155, 100));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(133, 600));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(177, 100));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(166, 100));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(167, 600));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(200, 600));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(300, 600));
-	std::cout << (test) << std::endl;
 	test.insert(make_pair(180, 600));
-	std::cout << (test) << std::endl;
-	test.begin();
+	test.insert(make_pair(179, 600));
+	test.insert(make_pair(181, 600));
+	test.insert(make_pair(182, 600));
+	test.insert(make_pair(183, 600));
+	for (int i = 400; i < 500; i++)
+		test.insert(make_pair(i, i));
+	for (int i = -5; i > -200; i--)
+		test.insert(make_pair(i, i));
+
+	map<int, int>::iterator it = test.begin();
+	while (it != test.end()) {
+		std::cout << (*it).first << std::endl;
+		++it;
+	}
 	/*
 	test.insert(make_pair(15, 600));
 	std::cout << (test) << std::endl;

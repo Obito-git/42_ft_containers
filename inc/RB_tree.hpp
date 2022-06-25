@@ -44,7 +44,6 @@ namespace ft {
 		}
 
 		void right_rotation(RB_node **root) {
-			std::cout << "r" << std::endl;
 			RB_node* parent_tmp = get_gparent_node()->parent;
 			// if (aunt red) color flip
 			if (get_aunt_node()->is_red) { //color flip
@@ -71,7 +70,6 @@ namespace ft {
 		}
 
 		void left_rotation(RB_node **root) {
-			std::cout << "l" << std::endl;
 			RB_node* parent_tmp = get_gparent_node()->parent;
 			// if (aunt red) color flip
 			if (get_aunt_node()->is_red) { //color flip
@@ -98,7 +96,6 @@ namespace ft {
 		}
 
 		void left_right_rotation(RB_node **root) {
-			std::cout << "lr" << std::endl;
 			if (get_aunt_node()->is_red) {
 				color_flip(root);
 			} else {
@@ -114,7 +111,6 @@ namespace ft {
 		}
 
 		void right_left_rotation(RB_node **root) {
-			std::cout << "rl" << std::endl;
 			if (get_aunt_node()->is_red) {
 				color_flip(root);
 			} else {
