@@ -6,7 +6,7 @@
 #include "../inc/RBT_iterator.hpp"
 #include <string>
 #include <map>
-using namespace ft;
+using namespace std;
 
 int main()
 {

@@ -4,7 +4,10 @@
 
 #ifndef CONTAINERS_RB_TREE_HPP
 #define CONTAINERS_RB_TREE_HPP
-
+/* Used links :
+ * https://medium.com/swlh/red-black-tree-rotations-and-color-flips-10e87f72b142
+ * https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
+ * */
 #include <ostream>
 #include "pair.hpp"
 #define RED     "\033[31m"      /* Red */
@@ -12,157 +15,268 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 
 namespace ft {
-	template<class Key, class T>
-	struct RB_node {
+	template < class Key,                                     // map::key_type
+			class T,                                       // map::mapped_type
+			class Compare = std::less<Key>,                     // map::key_compare
+			class Alloc = std::allocator<ft::pair<const Key,T> >    // map::allocator_type
+	> class RB_tree {
+
+		/************************************** NODE STRUCTURE **************************************************/
+	public:
+		struct RB_node {
+			typedef ft::pair<Key, T> value_type;
+			typedef 	RB_node* pointer;
+
+			value_type node_data;
+			pointer left;
+			pointer right;
+			pointer parent;
+			bool is_red;
+
+			/* constructor for creating a new null node */
+			RB_node(pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {}
+
+			/*constructor for creationg a new node */
+			RB_node(const pair<Key, T> &nodeData) : node_data(nodeData), left(null_pointer),
+													right(null_pointer), parent(null_pointer),
+													is_red(true) {}
+
+			RB_node &operator=(const RB_node &other) {
+				if (this != &other) {
+					node_data = other.node_data;
+					is_red = true;
+				}
+				return *this;
+			}
+
+			bool is_nullLeaf() {
+				return (!left && !right && !is_red);
+			}
+
+			Key &key() { return node_data.first; }
+			T &val() { return node_data.second; }
+		};
+
 		typedef ft::pair<Key, T> value_type;
-		typedef void (*child_alloc)(RB_node *);
+		typedef		typename Alloc::template rebind<RB_node>::other	allocator_type;
+		typedef 	RB_node node;
+		typedef 	RB_node* pointer;
+		typedef Compare key_compare;
+		typedef size_t size_type;
 
-		value_type	node_data;
-		RB_node*	left;
-		RB_node*	right;
-		RB_node*	parent;
-		bool		is_red;
+		/*	Tree initialization constructor */
+		explicit RB_tree (const key_compare& comp = key_compare(),
+						  const allocator_type& alloc = allocator_type()) :_root(null_pointer),
+																		   _alloc(alloc), _k_comp(comp), _size(0) {}
 
-		RB_node(RB_node* par): left(null_pointer), right(null_pointer), parent(par), is_red(false) {}
-		RB_node(const pair<Key, T> &nodeData) : node_data(nodeData), left(null_pointer),
-												right(null_pointer), parent(null_pointer),
-												is_red(true) {}
+		~RB_tree() {}
 
-		RB_node& operator=(const RB_node& other) {
-			if (this != &other) {
-				node_data = other.node_data;
-				is_red = true;
+	private:
+		pointer _root;
+		allocator_type _alloc;
+		key_compare _k_comp;
+		size_type _size;
+
+		/************************* NODES ALLOCATION AND CREATION ***********************************************/
+
+		node* create_root(const value_type& val, node* parent, bool red = true) {
+			node *res = _alloc.allocate(1);
+			_alloc.construct(res, val);
+			res->parent = parent;
+			res->is_red = red;
+			create_null_leafs(res);
+
+			return res;
+		}
+
+		void create_null_leafs(node* parent) {
+			if (!parent->left) {
+				parent->left = _alloc.allocate(1);
+				_alloc.construct(parent->left, parent);
 			}
-			return *this;
+			if (!parent->right){
+				parent->right = _alloc.allocate(1);
+				_alloc.construct(parent->right, parent);
+			}
+		}
+		/************************** OPERATION FOR BALANCE THE TREE **********************************************/
+		/* all operations are based from this img:
+			 * https://miro.medium.com/max/1196/1*v3n2S2CwZ9HcbTHGHLi-2w.png
+			 * */
+
+		void color_flip(pointer n) {
+			n->parent->is_red = false;
+			if (_root != get_gparent_node(n))
+				get_gparent_node(n)->is_red = true;
+			get_aunt_node(n)->is_red = false;
 		}
 
-		void color_flip(RB_node **root) {
-			parent->is_red = false;
-			if (*root != get_gparent_node())
-				get_gparent_node()->is_red = true;
-			get_aunt_node()->is_red = false;
-		}
-
-		void right_rotation(RB_node **root) {
-			RB_node* parent_tmp = get_gparent_node()->parent;
+		void right_rotation(pointer n) {
+			pointer parent_tmp = get_gparent_node(n)->parent;
 			// if (aunt red) color flip
-			if (get_aunt_node()->is_red) { //color flip
-				color_flip(root);
+			if (get_aunt_node(n)->is_red) { //color flip
+				color_flip(n);
 			} else {
 				//relink node bcs of grandparent changing
-				if (!get_gparent_node()->parent)
-					*root = parent;
+				if (!get_gparent_node(n)->parent)
+					_root = n->parent;
 				else {
-					if (get_gparent_node()->parent->left == get_gparent_node())
-						get_gparent_node()->parent->left = parent;
+					if (get_gparent_node(n)->parent->left == get_gparent_node(n))
+						get_gparent_node(n)->parent->left = n->parent;
 					else
-						get_gparent_node()->parent->right = parent;
+						get_gparent_node(n)->parent->right = n->parent;
 				}
-				RB_node* tmp = parent->right; //saving pa right child
-				tmp->parent = get_gparent_node(); //swap
-				parent->right = get_gparent_node();
-				parent->right->parent = parent;
-				parent->right->left = tmp;
-				parent->right->is_red = true;
-				parent->is_red = false;
-				parent->parent = parent_tmp;
+				pointer tmp = n->parent->right; //saving pa right child
+				tmp->parent = get_gparent_node(n); //swap
+				n->parent->right = get_gparent_node(n);
+				n->parent->right->parent = n->parent;
+				n->parent->right->left = tmp;
+				n->parent->right->is_red = true;
+				n->parent->is_red = false;
+				n->parent->parent = parent_tmp;
 			}
 		}
 
-		void left_rotation(RB_node **root) {
-			RB_node* parent_tmp = get_gparent_node()->parent;
+		void left_rotation(pointer n) {
+			pointer parent_tmp = get_gparent_node(n)->parent;
 			// if (aunt red) color flip
-			if (get_aunt_node()->is_red) { //color flip
-				color_flip(root);
+			if (get_aunt_node(n)->is_red) { //color flip
+				color_flip(n);
 			} else {
 				//relink node bcs of grandparent changing
-				if (!get_gparent_node()->parent)
-					*root = parent;
+				if (!get_gparent_node(n)->parent)
+					_root = n->parent;
 				else {
-					if (get_gparent_node()->parent->left == get_gparent_node())
-						get_gparent_node()->parent->left = parent;
+					if (get_gparent_node(n)->parent->left == get_gparent_node(n))
+						get_gparent_node(n)->parent->left = n->parent;
 					else
-						get_gparent_node()->parent->right = parent;
+						get_gparent_node(n)->parent->right = n->parent;
 				}
-				RB_node* tmp = parent->left; //saving pa right child
-				tmp->parent = get_gparent_node(); //swap
-				parent->left = get_gparent_node();
-				parent->left->parent = parent;
-				parent->left->right = tmp;
-				parent->left->is_red = true;
-				parent->is_red = false;
-				parent->parent = parent_tmp;
+				pointer tmp = n->parent->left; //saving pa right child
+				tmp->parent = get_gparent_node(n); //swap
+				n->parent->left = get_gparent_node(n);
+				n->parent->left->parent = n->parent;
+				n->parent->left->right = tmp;
+				n->parent->left->is_red = true;
+				n->parent->is_red = false;
+				n->parent->parent = parent_tmp;
 			}
 		}
 
-		void left_right_rotation(RB_node **root) {
-			if (get_aunt_node()->is_red) {
-				color_flip(root);
+		void left_right_rotation(pointer n) {
+			if (get_aunt_node(n)->is_red) {
+				color_flip(n);
 			} else {
-				RB_node* tmp_left = left;
-				tmp_left->parent = parent;
-				left = parent;
-				parent = get_gparent_node();
-				parent->left->parent = this;
-				parent->left = this;
-				left->right = tmp_left;
-				left->right_rotation(root);
+				pointer tmp_left = n->left;
+				tmp_left->parent = n->parent;
+				n->left = n->parent;
+				n->parent = get_gparent_node(n);
+				n->parent->left->parent = n;
+				n->parent->left = n;
+				n->left->right = tmp_left;
+				right_rotation(n->left);
 			}
 		}
 
-		void right_left_rotation(RB_node **root) {
-			if (get_aunt_node()->is_red) {
-				color_flip(root);
+		void right_left_rotation(pointer n) {
+			if (get_aunt_node(n)->is_red) {
+				color_flip(n);
 			} else {
-				RB_node* tmp_right = right;
-				tmp_right->parent = parent;
-				right = parent;
-				parent = get_gparent_node();
-				parent->right->parent = this;
-				parent->right = this;
-				right->left = tmp_right;
-				right->left_rotation(root);
+				pointer tmp_right = n->right;
+				tmp_right->parent = n->parent;
+				n->right = n->parent;
+				n->parent = get_gparent_node(n);
+				n->parent->right->parent = n;
+				n->parent->right = n;
+				n->right->left = tmp_right;
+				left_rotation(n->right);
+			}
+		}
+
+		void balance(pointer n) {
+			while (n) {
+				if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
+						&& (n->parent->is_red && get_gparent_node(n)->left == n->parent))
+					right_rotation(n);
+				else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
+						 && (n->parent->is_red && get_gparent_node(n)->left == n->parent)
+						 && (!n->parent->left->is_red))
+					left_right_rotation(n);
+				else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
+						 && (n->parent->is_red && get_gparent_node(n)->right == n->parent))
+					left_rotation(n);
+				else if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
+						 && (n->parent->is_red && get_gparent_node(n)->right == n->parent)
+						 && (!n->parent->right->is_red))
+					right_left_rotation(n);
+				n = n->parent;
+			}
+		}
+
+		/********************************** TREE MODIFIERS ***********************************************/
+	public:
+		void insert_element(const value_type& val) {
+			node tmp(val);
+			if (!_root) { _root = create_root(val, null_pointer, false); return; }
+			node *current = _root;
+			while (true) {
+				if (val.first == current->node_data.first) { current->node_data.second = val.second; break; }
+				if (val.first < current->node_data.first) {
+					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
+					else {
+						_size++;
+						*(current->left) = tmp;
+						create_null_leafs(current->left);
+						balance(current->left);
+						break; }
+				}
+				if (!current->right->is_nullLeaf()) { current = current->right; continue; }
+				_size++;
+				*(current->right) = tmp;
+				create_null_leafs(current->right);
+				balance(current->right);
+				break;
 			}
 		}
 
 
-
-
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		
-		/*********** GETTERS ******************/
-		RB_node* get_gparent_node() {
-			if (!parent)
+		/*************************************** UTILS ***************************************************/
+	private:
+		pointer get_gparent_node(pointer n) {
+			if (!n->parent)
 				return null_pointer;
-			return parent->parent;
+			return n->parent->parent;
 		}
-		RB_node* get_aunt_node() {
-			if (!get_gparent_node())
+
+		pointer get_aunt_node(pointer n) {
+			if (!get_gparent_node(n))
 				return null_pointer;
-			if (get_gparent_node()->right == parent)
-				return get_gparent_node()->left;
-			return get_gparent_node()->right;
+			if (get_gparent_node(n)->right == n->parent)
+				return get_gparent_node(n)->left;
+			return get_gparent_node(n)->right;
 		}
 
-		Key &key() { return node_data.first; }
-
-		T &val() { return node_data.second; }
-
-		bool is_nullLeaf() const {
-			return (!left && !right && !is_red);
+	public:
+		static bool is_nullLeaf(pointer n) {
+			return (!n->left && !n->right && !n->is_red);
 		}
 
+		RB_node *getRoot() const {
+			return _root;
+		}
+
+		size_type getSize() const {
+			return _size;
+		}
+
+		allocator_type getAlloc() const {
+			return _alloc;
+		}
+
+
+		/*
 		friend std::ostream &operator<<(std::ostream &os, const RB_node &node) {
-			if (node.is_nullLeaf())
+			if (is_nullLeaf(&node))
 				return os;
 			else {
 				os << (node.is_red ? RED : BOLDCYAN);
@@ -175,7 +289,7 @@ namespace ft {
 			}
 			return os;
 		}
-
+		 */
 	};
 }
 #endif //CONTAINERS_RB_TREE_HPP
