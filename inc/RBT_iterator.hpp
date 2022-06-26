@@ -9,14 +9,16 @@
 //https://www.cs.odu.edu/~zeil/cs361/latest/Public/treetraversal/index.html
 
 namespace ft {
-	template <typename T>
+	template <typename T, typename ValType>
 	class RBT_iterator : public iterator<ft::bidirectional_iterator_tag, T> {
 	public:
 		typedef typename	ft::iterator<bidirectional_iterator_tag, T>						iterator_category;
 		typedef typename	ft::iterator<bidirectional_iterator_tag, T>::difference_type	difference_type;
 		typedef	typename 	T::value_type&														value_reference;
 		typedef typename	T::value_type*											value_pointer;
-		typedef T* pointer;
+		typedef				T*														node_pointer;
+		typedef 			ValType*												pair_pointer;
+		typedef 			ValType&												pair_reference;
 		//FIXME ??????????????? const ref??
 
 		/* Is default-constructible, copy-constructible, copy-assignable and destructible */
@@ -24,8 +26,8 @@ namespace ft {
 		RBT_iterator(const RBT_iterator& other) {
 			_ptr = other._ptr;
 		}
-		RBT_iterator(pointer ptr): _ptr(ptr) {}
-		RBT_iterator &operator=(const RBT_iterator<T>& other) {
+		RBT_iterator(node_pointer ptr): _ptr(ptr) {}
+		RBT_iterator &operator=(const RBT_iterator<T, ValType>& other) {
 				 if (this == &other) { return *this; }
 				 _ptr = other._ptr;
 				 return *this;
@@ -33,15 +35,15 @@ namespace ft {
 		virtual ~RBT_iterator() {}
 
 	private:
-		pointer get_root() const {
-			pointer tmp = _ptr;
+		node_pointer get_root() const {
+			node_pointer tmp = _ptr;
 			while (tmp->parent)
 				tmp = tmp->parent;
 			return tmp;
 		}
 
-		pointer get_last_nullLeaf() const {
-			pointer tmp = get_root();
+		node_pointer get_last_nullLeaf() const {
+			node_pointer tmp = get_root();
 			while (tmp->right)
 				tmp = tmp->right;
 			return (tmp);
@@ -59,61 +61,51 @@ namespace ft {
 
 		/* increment / decrement */
 		RBT_iterator& operator++() {
-			pointer p;
-			/*
-			if (_ptr->is_nullLeaf())
-			{
-				// ++ from end(). get the root of the tree
-				_ptr = tree->root;
-
-				// error! ++ requested for an empty tree
-				if (nodePtr == nullptr)
-					throw UnderflowException { };
-
-				// move to the smallest value in the tree,
-				// which is the first node inorder
-				while (nodePtr->left != nullptr) {
-					nodePtr = nodePtr->left;
+			node_pointer p;
+			if (!_ptr->right->is_nullLeaf()) {
+				_ptr = _ptr->right;
+				while (!_ptr->left->is_nullLeaf()) {
+					_ptr = _ptr->left;
 				}
-			}
-			else {
-			 */
-				if (!_ptr->right->is_nullLeaf()) {
-					// successor is the farthest left node of
-					// right subtree
+			} else {
+				if (_ptr->right == get_last_nullLeaf()) {
 					_ptr = _ptr->right;
-					while (!_ptr->left->is_nullLeaf()) {
-						_ptr = _ptr->left;
-					}
-				} else {
-					if (_ptr->right == get_last_nullLeaf()) {
-						_ptr = _ptr->right;
-						return *this;
-					}
-					// have already processed the left subtree, and
-					// there is no right subtree. move up the tree,
-					// looking for a parent for which nodePtr is a left child,
-					// stopping if the parent becomes NULL. a non-NULL parent
-					// is the successor. if parent is NULL, the original node
-					// was the last node inorder, and its successor
-					// is the end of the list
-					p = _ptr->parent;
-					while (p && !p->is_nullLeaf() && _ptr == p->right) {
-						_ptr = p;
-						p = p->parent;
-					}
-					// if we were previously at the right-most node in
-					// the tree, nodePtr = nullptr, and the iterator specifies
-					// the end of the list
-					_ptr = p;
+					return *this;
 				}
-			//}
+				p = _ptr->parent;
+				while (p && !p->is_nullLeaf() && _ptr == p->right) {
+					_ptr = p;
+					p = p->parent;
+				}
+				_ptr = p;
+			}
 			return *this;
 		}
 
-		RBT_iterator operator++(int) { RBT_iterator old(*this); _ptr++; return old; }
-		RBT_iterator& operator--() { _ptr--; return *this; }
-		RBT_iterator operator--(int) { RBT_iterator old(*this); _ptr--; return old; }
+		RBT_iterator& operator--() {
+			node_pointer p;
+			if (!_ptr->left->is_nullLeaf()) {
+				_ptr = _ptr->left;
+				while (!_ptr->right->is_nullLeaf()) {
+					_ptr = _ptr->right;
+				}
+			} else {
+				if (_ptr->left == get_last_nullLeaf()) { //FIXME DONT NEED ???
+					_ptr = _ptr->left;
+					return *this;
+				}
+				p = _ptr->parent;
+				while (p && !p->is_nullLeaf() && _ptr == p->left) {
+					_ptr = p;
+					p = p->parent;
+				}
+				_ptr = p;
+			}
+			return *this;
+		}
+
+		RBT_iterator operator++(int) { RBT_iterator old(*this); operator++(); return old; }
+		RBT_iterator operator--(int) { RBT_iterator old(*this); operator--(); return old; }
 
 		/* arithmetic operators +- */
 		RBT_iterator operator+(difference_type n) const { return _ptr + n; }
@@ -123,23 +115,23 @@ namespace ft {
 		//const_reference operator[](difference_type pos) const {return *(_ptr + pos); }
 		/*********************************** MEMBER FUNCTION *********************************************/
 
-		value_reference operator[](difference_type pos) {return *(_ptr + pos); }
+		//value_reference operator[](difference_type pos) {return *(_ptr + pos); }
 		//FIXME
-		value_reference operator*() const { return _ptr->node_data; }
-		value_pointer operator->() { return (&_ptr->node_data); }
+		pair_reference operator*() const { return _ptr->node_data; }
+		pair_pointer operator->() { return (&_ptr->node_data); }
 
 
 		/* convertion from const */
-		operator RBT_iterator<const T>() const {
-			return (RBT_iterator<const T>)(this->_ptr);
+		operator RBT_iterator<T, const ValType>() const {
+			return (RBT_iterator<T, const ValType>)(this->_ptr);
 		}
 	private:
-		pointer _ptr;
+		node_pointer _ptr;
 	};
 
 	/*********************************** NOT MEMBER FUNCTION *********************************************/
 
-
+/*
 	template <typename T>
 	RBT_iterator<T> operator+(typename RBT_iterator<T>::difference_type n,
 			const RBT_iterator<T>& other) {
@@ -150,7 +142,7 @@ namespace ft {
 			const RBT_iterator<T2>& b) {
 		return &*a - &*b;
 	}
-	/* equality and relational operators */
+	 equality and relational operators
 	template <typename T1, typename T2>
 	bool operator==(const RBT_iterator<T1>& a, const RBT_iterator<T2>& b) {
 		return &*a == &*b;
@@ -160,6 +152,7 @@ namespace ft {
 	bool operator!=(const RBT_iterator<T1>& a, const RBT_iterator<T2>& b) {
 		return &*a != &*b;
 	}
+	*/
 
 }
 

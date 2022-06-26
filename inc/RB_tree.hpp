@@ -15,17 +15,18 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 
 namespace ft {
-	template < class Key,                                     // map::key_type
-			class T,                                       // map::mapped_type
-			class Compare = std::less<Key>,                     // map::key_compare
-			class Alloc = std::allocator<ft::pair<const Key,T> >    // map::allocator_type
+	template < class Key,							//map::ket_type
+			class Mapped,                         	// if ValueType is pair Mapped= map::mapped_value, otherwise Key
+			class ValueType,                       	// content type, for map ft::pair, for set other
+			class Compare = std::less<Key>,        	// map::key_compare
+			class Alloc = std::allocator<ValueType>	// map::allocator_type
 	> class RB_tree {
 
 		/************************************** NODE STRUCTURE **************************************************/
 	public:
 		struct RB_node {
-			typedef ft::pair<Key, T> value_type;
-			typedef 	RB_node* pointer;
+			typedef ValueType	value_type;
+			typedef 			RB_node* pointer;
 
 			value_type node_data;
 			pointer left;
@@ -37,7 +38,7 @@ namespace ft {
 			RB_node(pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {}
 
 			/*constructor for creationg a new node */
-			RB_node(const pair<Key, T> &nodeData) : node_data(nodeData), left(null_pointer),
+			RB_node(const value_type &nodeData) : node_data(nodeData), left(null_pointer),
 													right(null_pointer), parent(null_pointer),
 													is_red(true) {}
 
@@ -53,23 +54,29 @@ namespace ft {
 				return (!left && !right && !is_red);
 			}
 
-			Key &key() { return node_data.first; }
-			T &val() { return node_data.second; }
+			Key& key(typename ft::enable_if<!ft::is_pair<Key, Mapped>::value >::type* = 0) { return node_data.first ; }
 		};
-
-		typedef ft::pair<Key, T> value_type;
-		typedef		typename Alloc::template rebind<RB_node>::other	allocator_type;
+		/******************************* TYPEDEFS *******************************************/
+		/* Node	*/
 		typedef 	RB_node node;
 		typedef 	RB_node* pointer;
-		typedef Compare key_compare;
-		typedef size_t size_type;
+		/* Regular */
+		typedef		ValueType										value_type;
+		typedef		typename Alloc::template rebind<RB_node>::other	allocator_type;
+		typedef		Compare											key_compare;
+		typedef		size_t											size_type;
+		typedef		Key												key_type;
+		/*	Iterator */
+		typedef 			RBT_iterator<node, value_type>			iterator;
+		typedef 			RBT_iterator<node, const value_type>	const_iterator;
+
 
 		/*	Tree initialization constructor */
 		explicit RB_tree (const key_compare& comp = key_compare(),
-						  const allocator_type& alloc = allocator_type()) :_root(null_pointer),
-																		   _alloc(alloc), _k_comp(comp), _size(0) {}
+						  const allocator_type& alloc = allocator_type()) : _root(null_pointer), _alloc(alloc),
+																			_k_comp(comp), _size(0) {}
 
-		~RB_tree() {}
+		virtual ~RB_tree() {}
 
 	private:
 		pointer _root;
@@ -220,8 +227,8 @@ namespace ft {
 			if (!_root) { _root = create_root(val, null_pointer, false); return; }
 			node *current = _root;
 			while (true) {
-				if (val.first == current->node_data.first) { current->node_data.second = val.second; break; }
-				if (val.first < current->node_data.first) {
+				if (tmp.key() == current->key()) { current->node_data.second = val.second; break; }
+				if (_k_comp(tmp.key(), current->key())) {
 					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
 					else {
 						_size++;
@@ -239,6 +246,98 @@ namespace ft {
 			}
 		}
 
+		//size_type erase (const key_type& k) {}
+
+		/*************************************** OPERATIONS *******************************************/
+
+		iterator find (const key_type& k) {
+			pointer tmp = _root;
+			while (tmp && !tmp->is_nullLeaf()) {
+				if (k == tmp->key())
+					return iterator(tmp);
+				if (_k_comp(k, tmp->key()))
+					tmp = tmp->left;
+				else
+					tmp = tmp->right;
+			}
+			return end();
+		}
+
+		const_iterator find (const key_type& k) const {
+			pointer tmp = _root;
+			while (tmp && !tmp->is_nullLeaf()) {
+				if (k == tmp->key())
+					return const_iterator(tmp);
+				if (_k_comp(k, tmp->key()))
+					tmp = tmp->left;
+				else
+					tmp = tmp->right;
+			}
+			return end();
+		}
+
+		size_type count (const key_type& k) const {
+			return (find(k) == end() ? 0 : 1);
+		}
+
+		iterator lower_bound (const key_type& k) {
+			iterator it = begin();
+			while (_k_comp(it->first, k) && it != end())
+				++it;
+			return it;
+		}
+
+		const_iterator lower_bound (const key_type& k) const {
+			const_iterator it = begin();
+			while (_k_comp(it->first, k) && it != end())
+				++it;
+			return it;
+		}
+
+		iterator upper_bound (const key_type& k) {
+			iterator it = begin();
+			while (_k_comp(k, it->first) && it != end())
+				++it;
+			return it;
+		}
+
+		const_iterator upper_bound (const key_type& k) const {
+			const_iterator it = begin();
+			while (_k_comp(k, it->first) && it != end())
+				++it;
+			return it;
+		}
+
+
+		/*************************************** ITERATORS *******************************************/
+
+		iterator begin(){
+			node* tmp = _root;
+			while (!tmp->left->is_nullLeaf())
+				tmp = tmp->left;
+			return iterator(tmp);
+		}
+
+		iterator end(){
+			node* tmp = _root;
+			while (tmp->right)
+				tmp = tmp->right;
+			return iterator(tmp);
+		}
+
+		const_iterator begin() const{
+			node* tmp = _root;
+			while (!tmp->left->is_nullLeaf())
+				tmp = tmp->left;
+			return const_iterator(tmp);
+		}
+
+		const_iterator end() const {
+			node* tmp = _root;
+			while (tmp->right)
+				tmp = tmp->right;
+			return const_iterator(tmp);
+		}
 
 		/*************************************** UTILS ***************************************************/
 	private:
@@ -261,9 +360,11 @@ namespace ft {
 			return (!n->left && !n->right && !n->is_red);
 		}
 
+		/*
 		RB_node *getRoot() const {
 			return _root;
 		}
+		 */
 
 		size_type getSize() const {
 			return _size;

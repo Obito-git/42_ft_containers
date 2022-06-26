@@ -5,6 +5,7 @@
 #ifndef CONTAINERS_UTILS_HPP
 #define CONTAINERS_UTILS_HPP
 #include "null_pointer.hpp"
+#include "pair.hpp"
 
 namespace ft {
 	template <bool B>
@@ -12,6 +13,10 @@ namespace ft {
 
 	template <>
 	struct enable_if<true> { typedef int type; };
+
+	template<typename Key, typename Value = void> struct is_pair { static const bool value = false; };
+	template<typename Key, typename Value> struct is_pair<ft::pair<Key, Value> > { static const bool value = true; };
+
 
 	template <class T> struct is_integral { static const bool value = false; };
 	template<> struct is_integral<bool> { static const bool value = true; };

@@ -17,7 +17,7 @@
 
 namespace ft {
 	template < class Key,                                     // map::key_type
-			class T,                                       // map::mapped_type
+			class T,   	                                   // map::mapped_type
 			class Compare = std::less<Key>,                     // map::key_compare
 			class Alloc = std::allocator<ft::pair<const Key,T> >    // map::allocator_type
 	> class map {
@@ -26,30 +26,30 @@ namespace ft {
 	public:
 		typedef Key key_type;
 		typedef T mapped_type;
+		typedef typename ft::pair<Key, T> value_type;
 
 
 		//Red black tree typedefs
-		typedef RB_tree<key_type, mapped_type, Compare, Alloc> tree;
-		typedef typename	tree::RB_node node;
+		typedef RB_tree<key_type, mapped_type, value_type, Compare, Alloc>	MapTree;
+		typedef typename	MapTree::RB_node 						node;
+		typedef typename	MapTree::allocator_type				allocator_type;
+		typedef typename	MapTree::key_compare					key_compare;
 
-		typedef typename	tree::allocator_type		allocator_type;
-
-		typedef typename tree::key_compare key_compare;
 		//typedef Compare value_compare;
 
-		typedef typename	tree::value_type					value_type;
 		typedef typename	allocator_type::reference		reference;
 		typedef typename	allocator_type::const_reference	const_reference;
 		typedef typename	allocator_type::pointer    		pointer;
 		typedef typename	allocator_type::const_pointer	const_pointer;
 		typedef				size_t  						size_type;
 		typedef				ptrdiff_t						difference_type;
-		typedef 			RBT_iterator<node>				iterator;
+		typedef typename	MapTree::iterator				iterator;
+		typedef typename	MapTree::const_iterator		const_iterator;
 
 
-
+	private:
 		/* Red black tree variable*/
-		tree _data;
+		MapTree _data;
 	public:
 		//constructors
 		explicit map (const key_compare& comp = key_compare(),
@@ -59,17 +59,35 @@ namespace ft {
 		/*************************************** ITERATORS *********************************************/
 
 		iterator begin(){
-			node* tmp = _data.getRoot();
-			while (!tmp->left->is_nullLeaf())
-				tmp = tmp->left;
-			return iterator(tmp);
+			return _data.begin();
 		}
 
 		iterator end(){
-			node* tmp = _data.getRoot();
-			while (tmp->right)
-				tmp = tmp->right;
-			return iterator(tmp);
+			return _data.end();
+		}
+
+		const_iterator begin() const {
+			return _data.begin();
+		}
+
+		const_iterator end() const{
+			return _data.end();
+		}
+
+		iterator upper_bound (const key_type& k) {
+			return _data.upper_bound(k);
+		}
+
+		const_iterator upper_bound (const key_type& k) const {
+			return _data.upper_bound(k);
+		}
+
+		pair<const_iterator,const_iterator> equal_range (const key_type& k) const {
+			return ft::make_pair(lower_bound(k), upper_bound(k));
+		}
+
+		pair<iterator,iterator> equal_range (const key_type& k) {
+			return ft::make_pair(lower_bound(k), upper_bound(k));
 		}
 
 		/****************************************** MODIFIERS ***********************************************/
@@ -77,6 +95,16 @@ namespace ft {
 		//pair<iterator,bool> insert (const value_type& val);
 		void insert (const value_type& val) {
 			_data.insert_element(val);
+		}
+
+		/****************************************** OPERATIONS ***********************************************/
+
+		iterator lower_bound (const key_type& k) {
+			return _data.lower_bound(k);
+		}
+
+		const_iterator lower_bound (const key_type& k) const {
+			return _data.lower_bound(k);
 		}
 
 		/****************************************** CAPACITY ************************************************/
