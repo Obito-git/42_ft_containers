@@ -8,6 +8,14 @@
 #include <map>
 using namespace ft;
 
+void print(map<int, int>& test) {
+	map<int, int>::iterator it1 = test.begin();
+
+	while (it1 != test.end()) {
+		std::cout << it1->first  << std::endl;
+		it1++;
+	}
+}
 int main()
 {
 	/******************* VECTOR ************************/
@@ -26,23 +34,26 @@ int main()
 	/****************** MAP **********************/
 	map<int, int> test;
 	test.insert(make_pair(10, 20));
-	test.insert(make_pair(534, 20));
+	test.insert(make_pair(20, 20));
+	test.insert(make_pair(320, 20));
+	test.insert(make_pair(32, 20));
 	test.insert(make_pair(1, 20));
-	test.insert(make_pair(2, 20));
-	test.insert(make_pair(44, 20));
-	test.insert(make_pair(4, 20));
-	test.insert(make_pair(5, 20));
-	for (int i = 45; i < 1000; i++) {
-		test.insert(make_pair(i, i));
-	}
-	map<int, int>::iterator it1 = test.begin();
+	test.insert(make_pair(3, 20));
+	test.insert(make_pair(225, 20));
+	test.insert(make_pair(25, 20));
+	test.insert(make_pair(8, 20));
+	test.insert(make_pair(99, 20));
+	test.erase(20);
+	print(test);
+	test.erase(320);
+	print(test);
+	test.erase(32);
+	print(test);
+	test.erase(1);
+	print(test);
 
-	while (it1 != test.end()) {
-		std::cout << it1->first  << std::endl;
-		it1++;
-	}
 
-	/*
+	/*§
 	test.insert(make_pair(15, 600));
 	std::cout << (test) << std::endl;
 	test.insert(make_pair(30, 600));

@@ -15,54 +15,89 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 
 namespace ft {
+	/************************************** NODE STRUCTURE **************************************************/
+
+	template <class Key, class Mapped> struct KeyValGetter {
+		static Key get_key(ft::pair<const Key, Mapped> &val) { return val.first; }
+		static Key get_key(const Key &val) { return val; }
+		static Mapped &get_value(ft::pair<const Key, Mapped> &val) { return val.second; }
+		static Mapped &get_value(const Key &val) { return val; }
+	};
+
+	template <class ValueType, class Key, class Mapped, class Alloc>
+	struct RB_node {
+	public:
+		/*	Node typedefs */
+		typedef ValueType	value_type;
+		typedef ValueType*	value_pointer;
+		typedef 			RB_node* node_pointer;
+
+		/*	Variables */
+		value_pointer	node_data;
+		node_pointer	left;
+		node_pointer	right;
+		node_pointer	parent;
+		Alloc _alloc; //FIXME typedef
+		bool is_red;
+
+		/* constructor for creating a new null pointer */
+		RB_node(node_pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {
+			node_data = _alloc.allocate(1);
+			_alloc.construct(node_data);
+		}
+
+		/*constructor for creationg a new pointer */
+		RB_node(const value_type &nodeData) : left(null_pointer),
+											  right(null_pointer), parent(null_pointer),
+											  is_red(true) {
+			node_data = _alloc.allocate(1);
+			_alloc.construct(node_data, nodeData);
+		}
+
+		~RB_node() {
+			_alloc.destroy(node_data);
+			_alloc.deallocate(node_data, 1);
+		}
+
+		RB_node &operator=(const RB_node &other) {
+			if (this != &other) {
+				_alloc.destroy(node_data);
+				_alloc.construct(node_data, *other.node_data);
+				is_red = other.is_red;
+			}
+			return *this;
+		}
+
+		bool is_nullLeaf() {
+			return (!left && !right && !is_red);
+		}
+
+		bool without_childs() {
+			return (left->is_nullLeaf() && right->is_nullLeaf());
+		}
+
+		Key key() { return KeyValGetter<const Key, Mapped>::get_key(*node_data); }
+		Mapped& value() { return KeyValGetter<const Key, Mapped>::get_value(*node_data); }
+	};
+
+
+	/****************************************** RB TREE CLASS **********************************************/
+
 	template < class Key,							//map::ket_type
 			class Mapped,                         	// if ValueType is pair Mapped= map::mapped_value, otherwise Key
 			class ValueType,                       	// content type, for map ft::pair, for set other
 			class Compare = std::less<Key>,        	// map::key_compare
 			class Alloc = std::allocator<ValueType>	// map::allocator_type
 	> class RB_tree {
-
-		/************************************** NODE STRUCTURE **************************************************/
 	public:
-		struct RB_node {
-			typedef ValueType	value_type;
-			typedef 			RB_node* pointer;
-
-			value_type node_data;
-			pointer left;
-			pointer right;
-			pointer parent;
-			bool is_red;
-
-			/* constructor for creating a new null node */
-			RB_node(pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {}
-
-			/*constructor for creationg a new node */
-			RB_node(const value_type &nodeData) : node_data(nodeData), left(null_pointer),
-													right(null_pointer), parent(null_pointer),
-													is_red(true) {}
-
-			RB_node &operator=(const RB_node &other) {
-				if (this != &other) {
-					node_data = other.node_data;
-					is_red = true;
-				}
-				return *this;
-			}
-
-			bool is_nullLeaf() {
-				return (!left && !right && !is_red);
-			}
-
-			Key& key(typename ft::enable_if<!ft::is_pair<Key, Mapped>::value >::type* = 0) { return node_data.first ; }
-		};
 		/******************************* TYPEDEFS *******************************************/
 		/* Node	*/
-		typedef 	RB_node node;
-		typedef 	RB_node* pointer;
+		typedef 	RB_node<ValueType, Key, Mapped, Alloc>			node;
+		typedef 	node*										node_pointer;
 		/* Regular */
 		typedef		ValueType										value_type;
-		typedef		typename Alloc::template rebind<RB_node>::other	allocator_type;
+		typedef		ValueType*										value_pointer;
+		typedef		typename Alloc::template rebind<node>::other	node_allocator_type;
 		typedef		Compare											key_compare;
 		typedef		size_t											size_type;
 		typedef		Key												key_type;
@@ -73,22 +108,25 @@ namespace ft {
 
 		/*	Tree initialization constructor */
 		explicit RB_tree (const key_compare& comp = key_compare(),
-						  const allocator_type& alloc = allocator_type()) : _root(null_pointer), _alloc(alloc),
-																			_k_comp(comp), _size(0) {}
+						  const node_allocator_type& alloc = node_allocator_type()) : _root(null_pointer), _node_alloc(alloc),
+																					  _k_comp(comp), _size(0) {}
 
 		virtual ~RB_tree() {}
 
+		/******************************** VARIABLES ***********************************************************/
 	private:
-		pointer _root;
-		allocator_type _alloc;
+		node_pointer _root;
+		node_allocator_type _node_alloc;
 		key_compare _k_comp;
 		size_type _size;
 
 		/************************* NODES ALLOCATION AND CREATION ***********************************************/
 
-		node* create_root(const value_type& val, node* parent, bool red = true) {
-			node *res = _alloc.allocate(1);
-			_alloc.construct(res, val);
+
+	private:
+		node_pointer create_root(const value_type& val, node_pointer parent, bool red = true) {
+			node_pointer res = _node_alloc.allocate(1);
+			_node_alloc.construct(res, val);
 			res->parent = parent;
 			res->is_red = red;
 			create_null_leafs(res);
@@ -96,14 +134,15 @@ namespace ft {
 			return res;
 		}
 
-		void create_null_leafs(node* parent) {
+	private:
+		void create_null_leafs(node_pointer parent) {
 			if (!parent->left) {
-				parent->left = _alloc.allocate(1);
-				_alloc.construct(parent->left, parent);
+				parent->left = _node_alloc.allocate(1);
+				_node_alloc.construct(parent->left, parent);
 			}
 			if (!parent->right){
-				parent->right = _alloc.allocate(1);
-				_alloc.construct(parent->right, parent);
+				parent->right = _node_alloc.allocate(1);
+				_node_alloc.construct(parent->right, parent);
 			}
 		}
 		/************************** OPERATION FOR BALANCE THE TREE **********************************************/
@@ -111,15 +150,17 @@ namespace ft {
 			 * https://miro.medium.com/max/1196/1*v3n2S2CwZ9HcbTHGHLi-2w.png
 			 * */
 
-		void color_flip(pointer n) {
+	private:
+		void color_flip(node_pointer n) {
 			n->parent->is_red = false;
 			if (_root != get_gparent_node(n))
 				get_gparent_node(n)->is_red = true;
 			get_aunt_node(n)->is_red = false;
 		}
 
-		void right_rotation(pointer n) {
-			pointer parent_tmp = get_gparent_node(n)->parent;
+	private:
+		void right_rotation(node_pointer n) {
+			node_pointer parent_tmp = get_gparent_node(n)->parent;
 			// if (aunt red) color flip
 			if (get_aunt_node(n)->is_red) { //color flip
 				color_flip(n);
@@ -133,7 +174,7 @@ namespace ft {
 					else
 						get_gparent_node(n)->parent->right = n->parent;
 				}
-				pointer tmp = n->parent->right; //saving pa right child
+				node_pointer tmp = n->parent->right; //saving pa right child
 				tmp->parent = get_gparent_node(n); //swap
 				n->parent->right = get_gparent_node(n);
 				n->parent->right->parent = n->parent;
@@ -144,8 +185,9 @@ namespace ft {
 			}
 		}
 
-		void left_rotation(pointer n) {
-			pointer parent_tmp = get_gparent_node(n)->parent;
+	private:
+		void left_rotation(node_pointer n) {
+			node_pointer parent_tmp = get_gparent_node(n)->parent;
 			// if (aunt red) color flip
 			if (get_aunt_node(n)->is_red) { //color flip
 				color_flip(n);
@@ -159,7 +201,7 @@ namespace ft {
 					else
 						get_gparent_node(n)->parent->right = n->parent;
 				}
-				pointer tmp = n->parent->left; //saving pa right child
+				node_pointer tmp = n->parent->left; //saving pa right child
 				tmp->parent = get_gparent_node(n); //swap
 				n->parent->left = get_gparent_node(n);
 				n->parent->left->parent = n->parent;
@@ -170,11 +212,12 @@ namespace ft {
 			}
 		}
 
-		void left_right_rotation(pointer n) {
+	private:
+		void left_right_rotation(node_pointer n) {
 			if (get_aunt_node(n)->is_red) {
 				color_flip(n);
 			} else {
-				pointer tmp_left = n->left;
+				node_pointer tmp_left = n->left;
 				tmp_left->parent = n->parent;
 				n->left = n->parent;
 				n->parent = get_gparent_node(n);
@@ -185,11 +228,12 @@ namespace ft {
 			}
 		}
 
-		void right_left_rotation(pointer n) {
+	private:
+		void right_left_rotation(node_pointer n) {
 			if (get_aunt_node(n)->is_red) {
 				color_flip(n);
 			} else {
-				pointer tmp_right = n->right;
+				node_pointer tmp_right = n->right;
 				tmp_right->parent = n->parent;
 				n->right = n->parent;
 				n->parent = get_gparent_node(n);
@@ -200,58 +244,177 @@ namespace ft {
 			}
 		}
 
-		void balance(pointer n) {
+	private:
+		void balance(node_pointer n) {
 			while (n) {
-				if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
-						&& (n->parent->is_red && get_gparent_node(n)->left == n->parent))
-					right_rotation(n);
-				else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
-						 && (n->parent->is_red && get_gparent_node(n)->left == n->parent)
-						 && (!n->parent->left->is_red))
-					left_right_rotation(n);
-				else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
-						 && (n->parent->is_red && get_gparent_node(n)->right == n->parent))
-					left_rotation(n);
-				else if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
-						 && (n->parent->is_red && get_gparent_node(n)->right == n->parent)
-						 && (!n->parent->right->is_red))
-					right_left_rotation(n);
+				check_basic_conditions(n);
 				n = n->parent;
+			}
+		}
+
+	private:
+		void check_basic_conditions(node_pointer n) {
+			if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
+				&& (n->parent->is_red && get_gparent_node(n)->left == n->parent))
+				right_rotation(n);
+			else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
+					 && (n->parent->is_red && get_gparent_node(n)->left == n->parent)
+					 && (!n->parent->left->is_red))
+				left_right_rotation(n);
+			else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
+					 && (n->parent->is_red && get_gparent_node(n)->right == n->parent))
+				left_rotation(n);
+			else if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
+					 && (n->parent->is_red && get_gparent_node(n)->right == n->parent)
+					 && (!n->parent->right->is_red))
+				right_left_rotation(n);
+		}
+
+	private:
+		void balance_after_deletion(node_pointer replaced) {
+			if (replaced && replaced != _root && !replaced->is_red) {
+				node_pointer repBrother = get_brother_node(replaced);
+				if (repBrother && !repBrother->is_nullLeaf() && !repBrother->is_red) {
+					if (!repBrother->left->is_red && !repBrother->right->is_red) {
+						replaced->parent->is_red = false;
+						repBrother->is_red = true;
+					} else if (repBrother->right->is_red) {
+						repBrother->is_red = replaced->parent->is_red;
+						replaced->parent->is_red = false;
+						repBrother->right->is_red = false;
+						if (replaced == replaced->parent->left) {
+							after_deletion_left_turn(replaced);
+						} else {
+							after_deletion_right_turn(replaced);
+						}
+					} else if (repBrother->left->is_red) {
+						repBrother->left->is_red = false;
+						repBrother->is_red = true;
+						if (replaced->parent->right == replaced)
+							replaced->parent->left = repBrother->left;
+						else
+							replaced->parent->right = repBrother->left;
+						repBrother->left->parent = replaced->parent;
+						node_pointer tmp = repBrother->left->right;
+						tmp->parent = repBrother;
+						repBrother->left->right = repBrother;
+						repBrother->parent = repBrother->left;
+						repBrother->left = tmp;
+					}
+				} else if (repBrother && !repBrother->is_nullLeaf() && replaced->is_red) {
+					replaced->parent->is_red = true;
+					repBrother->is_red = false;
+					if (replaced == replaced->parent->left) {
+						after_deletion_left_turn(replaced);
+					} else {
+						after_deletion_right_turn(replaced);
+					}
+				}
 			}
 		}
 
 		/********************************** TREE MODIFIERS ***********************************************/
 	public:
-		void insert_element(const value_type& val) {
+		ft::pair<iterator, bool> insert_element(const value_type& val) {
+			_size++;
 			node tmp(val);
-			if (!_root) { _root = create_root(val, null_pointer, false); return; }
-			node *current = _root;
+			if (!_root) { _root = create_root(val, null_pointer, false); return ft::make_pair(_root, true); }
+			node_pointer current = _root;
 			while (true) {
-				if (tmp.key() == current->key()) { current->node_data.second = val.second; break; }
+				if (tmp.key() == current->key()) {
+					current->value() = tmp.value();
+					_size--;
+					return ft::make_pair(iterator(current), false);
+				}
 				if (_k_comp(tmp.key(), current->key())) {
 					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
 					else {
-						_size++;
 						*(current->left) = tmp;
 						create_null_leafs(current->left);
 						balance(current->left);
-						break; }
+						return ft::make_pair(current->left, true);
+					}
 				}
 				if (!current->right->is_nullLeaf()) { current = current->right; continue; }
-				_size++;
 				*(current->right) = tmp;
 				create_null_leafs(current->right);
 				balance(current->right);
-				break;
+				return ft::make_pair(current->right, true);
 			}
+			//return ft::make_pair(end(), false);
 		}
 
-		//size_type erase (const key_type& k) {}
+		void erase (iterator position) {
+			_size--;
+			node_pointer toDelete = find_nodeptr(position);
+			node_pointer replaced;
+			if (toDelete->right->is_nullLeaf() && toDelete->left->is_nullLeaf())
+				replaced = delete_lonely_node(toDelete);
+			else if (toDelete->right->is_nullLeaf() || toDelete->left->is_nullLeaf())
+				replaced = delete_one_child_node(toDelete);
+			else
+				replaced = delete_two_child_node(toDelete);
+			//balancing after deletion. can have 3 max rotations
+			for (int i = 0; i < 3; i++)
+				balance_after_deletion(replaced);
+			/*
+			if (replaced && !replaced->is_nullLeaf()) {
+				iterator it;
+				if (replaced->key() <= _root->key()) {
+					it = begin();
+					while (find_nodeptr(it) != _root) {
+						balance(find_nodeptr(it));
+						it++;
+					}
+				} else {
+					it = end();
+					while (find_nodeptr(it) != _root) {
+						balance(find_nodeptr(it));
+						it--;
+					}
+				}
+			}
+			 */
+		}
+
+		void after_deletion_left_turn(node_pointer replaced) {
+			node_pointer repBrother = get_brother_node(replaced);
+			if (get_gparent_node(replaced) == null_pointer)
+				_root = repBrother;
+			else if (get_gparent_node(replaced)->left == replaced->parent)
+				get_gparent_node(replaced)->left = repBrother;
+			else
+				get_gparent_node(replaced)->right = repBrother;
+			repBrother->parent = get_gparent_node(replaced);
+			replaced->parent->parent = repBrother;
+
+			replaced->parent->right = repBrother->left;
+			repBrother->left->parent = replaced->parent;
+			repBrother->left = replaced->parent;
+		}
+
+		void after_deletion_right_turn(node_pointer replaced) {
+			node_pointer repBrother = get_brother_node(replaced);
+			if (get_gparent_node(replaced) == null_pointer)
+				_root = repBrother;
+			else if (get_gparent_node(replaced)->left == replaced->parent)
+				get_gparent_node(replaced)->left = repBrother;
+			else
+				get_gparent_node(replaced)->right = repBrother;
+
+			repBrother->parent = get_gparent_node(replaced);
+
+			replaced->parent->parent = repBrother->right;
+
+			replaced->parent->left = repBrother->right->right;
+			repBrother->right->right = replaced->parent;
+		}
 
 		/*************************************** OPERATIONS *******************************************/
 
+	public:
 		iterator find (const key_type& k) {
-			pointer tmp = _root;
+			node_pointer tmp = _root;
 			while (tmp && !tmp->is_nullLeaf()) {
 				if (k == tmp->key())
 					return iterator(tmp);
@@ -263,8 +426,9 @@ namespace ft {
 			return end();
 		}
 
+	public:
 		const_iterator find (const key_type& k) const {
-			pointer tmp = _root;
+			node_pointer tmp = _root;
 			while (tmp && !tmp->is_nullLeaf()) {
 				if (k == tmp->key())
 					return const_iterator(tmp);
@@ -276,10 +440,12 @@ namespace ft {
 			return end();
 		}
 
+	public:
 		size_type count (const key_type& k) const {
 			return (find(k) == end() ? 0 : 1);
 		}
 
+	public:
 		iterator lower_bound (const key_type& k) {
 			iterator it = begin();
 			while (_k_comp(it->first, k) && it != end())
@@ -287,6 +453,7 @@ namespace ft {
 			return it;
 		}
 
+	public:
 		const_iterator lower_bound (const key_type& k) const {
 			const_iterator it = begin();
 			while (_k_comp(it->first, k) && it != end())
@@ -294,6 +461,7 @@ namespace ft {
 			return it;
 		}
 
+	public:
 		iterator upper_bound (const key_type& k) {
 			iterator it = begin();
 			while (_k_comp(k, it->first) && it != end())
@@ -301,6 +469,7 @@ namespace ft {
 			return it;
 		}
 
+	public:
 		const_iterator upper_bound (const key_type& k) const {
 			const_iterator it = begin();
 			while (_k_comp(k, it->first) && it != end())
@@ -311,29 +480,33 @@ namespace ft {
 
 		/*************************************** ITERATORS *******************************************/
 
+	public:
 		iterator begin(){
-			node* tmp = _root;
+			node_pointer tmp = _root;
 			while (!tmp->left->is_nullLeaf())
 				tmp = tmp->left;
 			return iterator(tmp);
 		}
 
+	public:
 		iterator end(){
-			node* tmp = _root;
+			node_pointer tmp = _root;
 			while (tmp->right)
 				tmp = tmp->right;
 			return iterator(tmp);
 		}
 
+	public:
 		const_iterator begin() const{
-			node* tmp = _root;
+			node_pointer tmp = _root;
 			while (!tmp->left->is_nullLeaf())
 				tmp = tmp->left;
 			return const_iterator(tmp);
 		}
 
+	public:
 		const_iterator end() const {
-			node* tmp = _root;
+			node_pointer tmp = _root;
 			while (tmp->right)
 				tmp = tmp->right;
 			return const_iterator(tmp);
@@ -341,38 +514,127 @@ namespace ft {
 
 		/*************************************** UTILS ***************************************************/
 	private:
-		pointer get_gparent_node(pointer n) {
+		node_pointer get_gparent_node(node_pointer n) {
 			if (!n->parent)
 				return null_pointer;
 			return n->parent->parent;
 		}
-
-		pointer get_aunt_node(pointer n) {
+	private:
+		node_pointer get_aunt_node(node_pointer n) {
 			if (!get_gparent_node(n))
 				return null_pointer;
 			if (get_gparent_node(n)->right == n->parent)
 				return get_gparent_node(n)->left;
 			return get_gparent_node(n)->right;
 		}
+	private:
+		node_pointer get_brother_node(node_pointer n) {
+			if (!n->parent)
+				return null_pointer;
+			return n->parent->left == n ? n->parent->right : n->parent->left;
+		}
+
+	private:
+		node_pointer find_nodeptr (iterator ptr) { //FIXME need tests
+			node_pointer tmp = _root;
+			//key_type k = *ptr.first;
+			value_type kk = *ptr;
+			key_type k = kk.first; //FIXME
+			while (tmp && !tmp->is_nullLeaf()) {
+				if (k == tmp->key())
+					return tmp;
+				if (_k_comp(k, tmp->key()))
+					tmp = tmp->left;
+				else
+					tmp = tmp->right;
+			}
+			return tmp;
+		}
 
 	public:
-		static bool is_nullLeaf(pointer n) {
+		static bool is_nullLeaf(node_pointer n) {
 			return (!n->left && !n->right && !n->is_red);
 		}
 
-		/*
-		RB_node *getRoot() const {
-			return _root;
-		}
-		 */
-
+	public:
 		size_type getSize() const {
 			return _size;
 		}
 
-		allocator_type getAlloc() const {
-			return _alloc;
+	public:
+		node_allocator_type getAlloc() const {
+			return _node_alloc;
 		}
+		/*************************************** DELETE/FREE ***************************************************/
+	private:
+		void destroy_and_deallocate(node_pointer p) {
+			_node_alloc.destroy(p);
+			_node_alloc.deallocate(p, 1);
+		}
+
+	private:
+		node_pointer delete_lonely_node(node_pointer e) {
+			node_pointer ret;
+			destroy_and_deallocate(e->left);
+			if (e->parent == null_pointer) {
+				_root = null_pointer;
+				destroy_and_deallocate(e->right);
+				ret = null_pointer;
+			} else {
+				if (e->parent->left == e)
+					e->parent->left = e->right;
+				else
+					e->parent->right = e->right;
+				e->right->parent = e->parent;
+				ret = e->right;
+			}
+			destroy_and_deallocate(e);
+			return ret;
+		}
+
+	private:
+		node_pointer delete_one_child_node(node_pointer e) {
+			node_pointer child;
+			child = e->left->is_nullLeaf() ? e->right : e->left;
+			if (e->parent == null_pointer)
+				_root = child;
+			else if (e->parent->left == e)
+				e->parent->left = child;
+			else
+				e->parent->right = child;
+			child->parent = e->parent;
+			if (e->left == child)
+				destroy_and_deallocate(e->right);
+			else
+				destroy_and_deallocate(e->left);
+			return child;
+		}
+
+	private:
+		node_pointer delete_two_child_node(node_pointer e) {
+			node_pointer new_val = e->right;
+			bool oldcolor = e->is_red;
+			if (new_val->left->is_nullLeaf()) {
+				*e = *new_val->node_data;
+				e->is_red = oldcolor;
+				destroy_and_deallocate(new_val->left);
+				new_val->right->parent = e;
+				e->right = new_val->right;
+				destroy_and_deallocate(new_val);
+			} else {
+				while (!new_val->left->is_nullLeaf())
+					new_val = new_val->left;
+				*e = *new_val->node_data;
+				e->is_red = oldcolor;
+				new_val->parent->left = new_val->left;
+				new_val->left->parent = new_val->parent;
+				destroy_and_deallocate(new_val->right);
+				destroy_and_deallocate(new_val);
+			}
+			return e->right;
+		}
+
+
 
 
 		/*

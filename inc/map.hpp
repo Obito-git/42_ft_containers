@@ -26,13 +26,12 @@ namespace ft {
 	public:
 		typedef Key key_type;
 		typedef T mapped_type;
-		typedef typename ft::pair<Key, T> value_type;
+		typedef typename ft::pair<const Key, T> value_type;
 
 
 		//Red black tree typedefs
 		typedef RB_tree<key_type, mapped_type, value_type, Compare, Alloc>	MapTree;
-		typedef typename	MapTree::RB_node 						node;
-		typedef typename	MapTree::allocator_type				allocator_type;
+		typedef typename	MapTree::node_allocator_type				allocator_type;
 		typedef typename	MapTree::key_compare					key_compare;
 
 		//typedef Compare value_compare;
@@ -51,9 +50,28 @@ namespace ft {
 		/* Red black tree variable*/
 		MapTree _data;
 	public:
-		//constructors
+		/***************************************** CONSTRUCTORS ****************************************/
+		/*	Empty container constructor (default constructor)
+		* Constructs an empty container, with no elements.*/
+
 		explicit map (const key_compare& comp = key_compare(),
 					  const allocator_type& alloc = allocator_type()) : _data(comp, alloc) {}
+
+		/*	Range constructor
+		* Constructs a container with as many elements as the range [first,last),
+		* with each element constructed from its corresponding element in that range*/
+		template <class InputIterator>
+		map (InputIterator first, InputIterator last,
+			 const key_compare& comp = key_compare(),
+			 const allocator_type& alloc = allocator_type()): _data(comp, alloc) {
+			insert(first, last);
+		}
+		/*	Copy constructor
+		* Constructs a container with a copy of each of the elements in x.*/
+		map (const map& x) {
+			(void) x;
+
+		}
 		~map() {}
 
 		/*************************************** ITERATORS *********************************************/
@@ -92,10 +110,34 @@ namespace ft {
 
 		/****************************************** MODIFIERS ***********************************************/
 
-		//pair<iterator,bool> insert (const value_type& val);
-		void insert (const value_type& val) {
-			_data.insert_element(val);
+		pair<iterator,bool> insert (const value_type& val) {
+			return _data.insert_element(val);
 		}
+
+		iterator insert (iterator position, const value_type& val) {
+			(void) position; //FIXME test
+			ft::pair<iterator, bool> ret = _data.insert_element(val);
+			return ret.first;
+		}
+
+		template <class InputIterator>
+		void insert (InputIterator first, InputIterator last) {
+			while (first != last)
+				_data.insert_element(*first++);
+		}
+
+		void erase (iterator position) {
+			_data.erase(position);
+		}
+
+		size_type erase (const key_type& k) {
+			iterator it = find(k);
+			if (it == end())
+				return 0;
+			erase(it);
+			return 1;
+		}
+		//void erase (iterator first, iterator last);
 
 		/****************************************** OPERATIONS ***********************************************/
 
@@ -106,6 +148,11 @@ namespace ft {
 		const_iterator lower_bound (const key_type& k) const {
 			return _data.lower_bound(k);
 		}
+
+		iterator find (const key_type& k) {
+			return _data.find(k);
+		}
+		//const_iterator find (const key_type& k) const;
 
 		/****************************************** CAPACITY ************************************************/
 		/*	Return container size *
@@ -124,6 +171,14 @@ namespace ft {
 		* Returns the maximum number of elements that the map container can hold*/
 		size_type max_size() const {
 			return _data.getAlloc().max_size();
+		}
+
+		void clear() {
+			int i = 1;
+			while (!empty()) {
+				//std::cout << "element " << i++ << ", key " << begin()->first << std::endl; FIXME
+				_data.erase(begin());
+			}
 		}
 
 

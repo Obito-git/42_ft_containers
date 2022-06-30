@@ -14,10 +14,6 @@ namespace ft {
 	template <>
 	struct enable_if<true> { typedef int type; };
 
-	template<typename Key, typename Value = void> struct is_pair { static const bool value = false; };
-	template<typename Key, typename Value> struct is_pair<ft::pair<Key, Value> > { static const bool value = true; };
-
-
 	template <class T> struct is_integral { static const bool value = false; };
 	template<> struct is_integral<bool> { static const bool value = true; };
 	template<> struct is_integral<char> { static const bool value = true; };
@@ -34,6 +30,4 @@ namespace ft {
 	template<> struct is_integral<unsigned long long int> { static const bool value = true; };
 
 }
-
-
 #endif //CONTAINERS_UTILS_HPP
