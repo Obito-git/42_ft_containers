@@ -621,15 +621,19 @@ namespace ft {
 				new_val->right->parent = e;
 				e->right = new_val->right;
 				destroy_and_deallocate(new_val);
+				return e->right;
 			} else {
-				while (!new_val->left->is_nullLeaf())
+				node_pointer ret;
+				while (!new_val->left->is_nullLeaf()) //FIXME POSSIBLE BUG
 					new_val = new_val->left;
 				*e = *new_val->node_data;
 				e->is_red = oldcolor;
-				new_val->parent->left = new_val->left;
-				new_val->left->parent = new_val->parent;
-				destroy_and_deallocate(new_val->right);
+				new_val->parent->left = new_val->right;
+				new_val->right->parent = new_val->parent;
+				ret = new_val->parent->left;
+				destroy_and_deallocate(new_val->left);
 				destroy_and_deallocate(new_val);
+				return ret;
 			}
 			return e->right;
 		}

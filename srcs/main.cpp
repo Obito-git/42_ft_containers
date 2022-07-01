@@ -33,26 +33,48 @@ int main()
 
 	/****************** MAP **********************/
 	map<int, int> test;
-	test.insert(make_pair(10, 20));
-	test.insert(make_pair(20, 20));
-	test.insert(make_pair(320, 20));
-	test.insert(make_pair(32, 20));
-	test.insert(make_pair(1, 20));
-	test.insert(make_pair(3, 20));
-	test.insert(make_pair(225, 20));
-	test.insert(make_pair(25, 20));
-	test.insert(make_pair(8, 20));
-	test.insert(make_pair(99, 20));
-	test.erase(20);
-	print(test);
-	test.erase(320);
-	print(test);
-	test.erase(32);
-	print(test);
+	for (int i = 0; i < 1000; i++) {
+		test.insert(make_pair(i, i));
+	}
+	/*
 	test.erase(1);
+	test.erase(10);
+	test.erase(321);
+	test.erase(54);
+	test.erase(991);
+	test.erase(500);
+	test.erase(325);
+	test.erase(666);
+	test.erase(763);
+	test.erase(3);
+	test.erase(123);
+	test.erase(432);
+	test.erase(111);
+	test.erase(19);
+	test.erase(79);
+	test.erase(86);
+	test.erase(754);
+*/
+
+	for (int i = 0; i < 1000; i++)
+		if ((i % 2 == 1 || i % 10 == 0) && (i > 300))
+			test.erase(i);
 	print(test);
-
-
+	for (int i = 0; i < 30; i++)
+		test.erase(i);
+	print(test);
+	for (int i = 40; i < 50; i++)
+		test.erase(i);
+	print(test);
+	for (int i = 70; i < 100; i++)
+		test.erase(i);
+	print(test);
+	for (int i = 150; i < 200; i++)
+		test.erase(i);
+	print(test);
+	for (int i = 233; i < 277; i++)
+		test.erase(i);
+	print(test);
 	/*§
 	test.insert(make_pair(15, 600));
 	std::cout << (test) << std::endl;

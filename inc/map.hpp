@@ -21,18 +21,18 @@ namespace ft {
 			class Compare = std::less<Key>,                     // map::key_compare
 			class Alloc = std::allocator<ft::pair<const Key,T> >    // map::allocator_type
 	> class map {
-	private:
-
+	/****************************************** Member types *******************************************************/
 	public:
-		typedef Key key_type;
-		typedef T mapped_type;
-		typedef typename ft::pair<const Key, T> value_type;
-
-
-		//Red black tree typedefs
+		typedef				Key												key_type;
+		typedef				T												mapped_type;
+		typedef typename	ft::pair<const Key, T>							value_type;
 		typedef RB_tree<key_type, mapped_type, value_type, Compare, Alloc>	MapTree;
-		typedef typename	MapTree::node_allocator_type				allocator_type;
-		typedef typename	MapTree::key_compare					key_compare;
+		typedef typename	MapTree::key_compare							key_compare;
+
+
+
+		typedef typename	MapTree::node_allocator_type					allocator_type;
+
 
 		//typedef Compare value_compare;
 
@@ -174,7 +174,7 @@ namespace ft {
 		}
 
 		void clear() {
-			int i = 1;
+			//int i = 1;
 			while (!empty()) {
 				//std::cout << "element " << i++ << ", key " << begin()->first << std::endl; FIXME
 				_data.erase(begin());
