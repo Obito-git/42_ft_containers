@@ -28,9 +28,7 @@ namespace ft {
 		typedef typename	ft::pair<const Key, T>							value_type;
 		typedef RB_tree<key_type, mapped_type, value_type, Compare, Alloc>	MapTree;
 		typedef typename	MapTree::key_compare							key_compare;
-
-
-
+		typedef typename 	MapTree::value_compare							value_compare;
 		typedef typename	MapTree::node_allocator_type					allocator_type;
 
 

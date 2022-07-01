@@ -15,8 +15,8 @@
 #define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
 
 namespace ft {
-	/************************************** NODE STRUCTURE **************************************************/
-
+	/*	Universal getter for
+	*   ft::pair and other objects type; It will return key/val which depends on obj type */
 	template <class Key, class Mapped> struct KeyValGetter {
 		static Key get_key(ft::pair<const Key, Mapped> &val) { return val.first; }
 		static Key get_key(const Key &val) { return val; }
@@ -24,6 +24,7 @@ namespace ft {
 		static Mapped &get_value(const Key &val) { return val; }
 	};
 
+	/************************************** NODE STRUCTURE **************************************************/
 	template <class ValueType, class Key, class Mapped, class Alloc>
 	struct RB_node {
 	public:
@@ -37,7 +38,7 @@ namespace ft {
 		node_pointer	left;
 		node_pointer	right;
 		node_pointer	parent;
-		Alloc _alloc; //FIXME typedef
+		Alloc _alloc; //FIXME typedef, maybe need to change alloc to new (ubuntu construct bug)
 		bool is_red;
 
 		/* constructor for creating a new null pointer */
@@ -54,6 +55,7 @@ namespace ft {
 			_alloc.construct(node_data, nodeData);
 		}
 
+		/*	Destructor */
 		~RB_node() {
 			_alloc.destroy(node_data);
 			_alloc.deallocate(node_data, 1);
@@ -72,10 +74,6 @@ namespace ft {
 			return (!left && !right && !is_red);
 		}
 
-		bool without_childs() {
-			return (left->is_nullLeaf() && right->is_nullLeaf());
-		}
-
 		Key key() { return KeyValGetter<const Key, Mapped>::get_key(*node_data); }
 		Mapped& value() { return KeyValGetter<const Key, Mapped>::get_value(*node_data); }
 	};
@@ -91,6 +89,7 @@ namespace ft {
 	> class RB_tree {
 	public:
 		/******************************* TYPEDEFS *******************************************/
+		class ValueCompare;
 		/* Node	*/
 		typedef 	RB_node<ValueType, Key, Mapped, Alloc>			node;
 		typedef 	node*										node_pointer;
@@ -99,6 +98,7 @@ namespace ft {
 		typedef		ValueType*										value_pointer;
 		typedef		typename Alloc::template rebind<node>::other	node_allocator_type;
 		typedef		Compare											key_compare;
+		typedef 	ValueCompare									value_compare;
 		typedef		size_t											size_type;
 		typedef		Key												key_type;
 		/*	Iterator */
@@ -112,8 +112,25 @@ namespace ft {
 																					  _k_comp(comp), _size(0) {}
 
 		virtual ~RB_tree() {}
+		/************************************** VALUE COMPARE *************************************************/
 
-		/******************************** VARIABLES ***********************************************************/
+		class ValueCompare
+		{
+			friend class RB_tree;
+		protected:
+			Compare comp;
+			ValueCompare (Compare c) : comp(c) {}  // constructed with map's comparison object
+		public:
+			typedef bool result_type;
+			typedef value_type first_argument_type;
+			typedef value_type second_argument_type;
+			bool operator() (const value_type& x, const value_type& y) const
+			{
+				return comp(x.first, y.first);
+			}
+		};
+
+		/************************************** VARIABLES *****************************************************/
 	private:
 		node_pointer _root;
 		node_allocator_type _node_alloc;
@@ -357,24 +374,6 @@ namespace ft {
 			//balancing after deletion. can have 3 max rotations
 			for (int i = 0; i < 3; i++)
 				balance_after_deletion(replaced);
-			/*
-			if (replaced && !replaced->is_nullLeaf()) {
-				iterator it;
-				if (replaced->key() <= _root->key()) {
-					it = begin();
-					while (find_nodeptr(it) != _root) {
-						balance(find_nodeptr(it));
-						it++;
-					}
-				} else {
-					it = end();
-					while (find_nodeptr(it) != _root) {
-						balance(find_nodeptr(it));
-						it--;
-					}
-				}
-			}
-			 */
 		}
 
 		void after_deletion_left_turn(node_pointer replaced) {
@@ -401,11 +400,8 @@ namespace ft {
 				get_gparent_node(replaced)->left = repBrother;
 			else
 				get_gparent_node(replaced)->right = repBrother;
-
 			repBrother->parent = get_gparent_node(replaced);
-
 			replaced->parent->parent = repBrother->right;
-
 			replaced->parent->left = repBrother->right->right;
 			repBrother->right->right = replaced->parent;
 		}
@@ -635,28 +631,7 @@ namespace ft {
 				destroy_and_deallocate(new_val);
 				return ret;
 			}
-			return e->right;
 		}
-
-
-
-
-		/*
-		friend std::ostream &operator<<(std::ostream &os, const RB_node &node) {
-			if (is_nullLeaf(&node))
-				return os;
-			else {
-				os << (node.is_red ? RED : BOLDCYAN);
-				os << "((K:[" << node.node_data.first << "]" << " P:[";
-				if (node.parent)
-					os << node.parent->node_data.first;
-				else
-					os << "ROOT";
-				os << "]))" << RESET;
-			}
-			return os;
-		}
-		 */
 	};
 }
 #endif //CONTAINERS_RB_TREE_HPP
