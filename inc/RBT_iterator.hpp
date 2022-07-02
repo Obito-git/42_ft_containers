@@ -117,8 +117,8 @@ namespace ft {
 
 		//value_reference operator[](difference_type pos) {return *(_ptr + pos); }
 		//FIXME
-		pair_reference operator*() const { return *(_ptr->node_data); }
-		pair_pointer operator->() { return (_ptr->node_data); }
+		pair_reference operator*() const { return _ptr->node_data; }
+		pair_pointer operator->() { return &_ptr->node_data; }
 
 
 		/* convertion from const */

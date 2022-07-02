@@ -27,14 +27,14 @@ namespace ft {
 		* Member first is constructed with a and member second with b.*/
 		pair(const first_type& a, const second_type& b) : first(a), second(b) {}
 
-
 		pair& operator= (const pair& pr) {
-			if (this != &pr) {
+			if (&pr != this) {
 				first = pr.first;
 				second = pr.second;
 			}
 			return *this;
 		}
+
 	};
 
 	template <class T1,class T2>

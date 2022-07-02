@@ -172,11 +172,7 @@ namespace ft {
 		}
 
 		void clear() {
-			//int i = 1;
-			while (!empty()) {
-				//std::cout << "element " << i++ << ", key " << begin()->first << std::endl; FIXME
-				_data.erase(begin());
-			}
+			_data.clear();
 		}
 
 

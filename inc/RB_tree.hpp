@@ -18,64 +18,46 @@ namespace ft {
 	/*	Universal getter for
 	*   ft::pair and other objects type; It will return key/val which depends on obj type */
 	template <class Key, class Mapped> struct KeyValGetter {
-		static Key get_key(ft::pair<const Key, Mapped> &val) { return val.first; }
+		static Key get_key(const ft::pair<const Key, Mapped> &val) { return val.first; }
 		static Key get_key(const Key &val) { return val; }
-		static Mapped &get_value(ft::pair<const Key, Mapped> &val) { return val.second; }
-		static Mapped &get_value(const Key &val) { return val; }
+		static Mapped get_value(const ft::pair<const Key, Mapped> &val) { return val.second; }
+		static Mapped get_value(const Key &val) { return val; }
 	};
 
 	/************************************** NODE STRUCTURE **************************************************/
-	template <class ValueType, class Key, class Mapped, class Alloc>
+	template <class ValueType, class Key, class Mapped>
 	struct RB_node {
 	public:
 		/*	Node typedefs */
 		typedef ValueType	value_type;
-		typedef ValueType*	value_pointer;
 		typedef 			RB_node* node_pointer;
 
 		/*	Variables */
-		value_pointer	node_data;
+		value_type  	node_data;
 		node_pointer	left;
 		node_pointer	right;
 		node_pointer	parent;
-		Alloc _alloc; //FIXME typedef, maybe need to change alloc to new (ubuntu construct bug)
 		bool is_red;
 
 		/* constructor for creating a new null pointer */
 		RB_node(node_pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {
-			node_data = _alloc.allocate(1);
-			_alloc.construct(node_data);
 		}
 
-		/*constructor for creationg a new pointer */
-		RB_node(const value_type &nodeData) : left(null_pointer),
+		/*constructor for creation a new pointer */
+		RB_node(const value_type &nodeData) : node_data(nodeData), left(null_pointer),
 											  right(null_pointer), parent(null_pointer),
 											  is_red(true) {
-			node_data = _alloc.allocate(1);
-			_alloc.construct(node_data, nodeData);
 		}
 
 		/*	Destructor */
-		~RB_node() {
-			_alloc.destroy(node_data);
-			_alloc.deallocate(node_data, 1);
-		}
-
-		RB_node &operator=(const RB_node &other) {
-			if (this != &other) {
-				_alloc.destroy(node_data);
-				_alloc.construct(node_data, *other.node_data);
-				is_red = other.is_red;
-			}
-			return *this;
-		}
+		~RB_node() {}
 
 		bool is_nullLeaf() {
 			return (!left && !right && !is_red);
 		}
 
-		Key key() { return KeyValGetter<const Key, Mapped>::get_key(*node_data); }
-		Mapped& value() { return KeyValGetter<const Key, Mapped>::get_value(*node_data); }
+		Key key() { return KeyValGetter<const Key, Mapped>::get_key(node_data); }
+		Mapped value() { return KeyValGetter<const Key, Mapped>::get_value(node_data); }
 	};
 
 
@@ -91,7 +73,7 @@ namespace ft {
 		/******************************* TYPEDEFS *******************************************/
 		class ValueCompare;
 		/* Node	*/
-		typedef 	RB_node<ValueType, Key, Mapped, Alloc>			node;
+		typedef 	RB_node<ValueType, Key, Mapped>			node;
 		typedef 	node*										node_pointer;
 		/* Regular */
 		typedef		ValueType										value_type;
@@ -101,6 +83,7 @@ namespace ft {
 		typedef 	ValueCompare									value_compare;
 		typedef		size_t											size_type;
 		typedef		Key												key_type;
+		typedef     KeyValGetter<const Key, Mapped>					type_helper;
 		/*	Iterator */
 		typedef 			RBT_iterator<node, value_type>			iterator;
 		typedef 			RBT_iterator<node, const value_type>	const_iterator;
@@ -111,7 +94,9 @@ namespace ft {
 						  const node_allocator_type& alloc = node_allocator_type()) : _root(null_pointer), _node_alloc(alloc),
 																					  _k_comp(comp), _size(0) {}
 
-		virtual ~RB_tree() {}
+		virtual ~RB_tree() {
+			clear();
+		}
 		/************************************** VALUE COMPARE *************************************************/
 
 		class ValueCompare
@@ -162,6 +147,29 @@ namespace ft {
 				_node_alloc.construct(parent->right, parent);
 			}
 		}
+
+
+	private:
+		node_pointer add_element(const value_type& elem, node_pointer old) {
+			node_pointer new_elem = _node_alloc.allocate(1);
+			_node_alloc.construct(new_elem, elem);
+			new_elem->parent = old->parent;
+			if (old->parent) {
+				if (old == old->parent->left)
+					old->parent->left = new_elem;
+				else
+					old->parent->right = new_elem;
+			}
+			else
+				_root = new_elem;
+			if (old->left) { old->left->parent = new_elem; new_elem->left = old->left; }
+			if (old->right) { old->right->parent = new_elem; new_elem->right = old->right; }
+			destroy_and_deallocate(old);
+			create_null_leafs(new_elem);
+			balance(new_elem);
+			return new_elem;
+		}
+
 		/************************** OPERATION FOR BALANCE THE TREE **********************************************/
 		/* all operations are based from this img:
 			 * https://miro.medium.com/max/1196/1*v3n2S2CwZ9HcbTHGHLi-2w.png
@@ -334,31 +342,25 @@ namespace ft {
 	public:
 		ft::pair<iterator, bool> insert_element(const value_type& val) {
 			_size++;
-			node tmp(val);
-			if (!_root) { _root = create_root(val, null_pointer, false); return ft::make_pair(_root, true); }
+			key_type key = type_helper::get_key(val);
 			node_pointer current = _root;
+			node_pointer new_element;
+			if (!_root) { _root = create_root(val, null_pointer, false); return ft::make_pair(_root, true); }
 			while (true) {
-				if (tmp.key() == current->key()) {
-					current->value() = tmp.value();
+				if (key == current->key()) {
+					//current->value() = type_helper::get_value(val); //FIXME
 					_size--;
 					return ft::make_pair(iterator(current), false);
 				}
-				if (_k_comp(tmp.key(), current->key())) {
+				if (_k_comp(key, current->key())) {
 					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
-					else {
-						*(current->left) = tmp;
-						create_null_leafs(current->left);
-						balance(current->left);
-						return ft::make_pair(current->left, true);
-					}
+					else { new_element = add_element(val, current->left); break; }
 				}
 				if (!current->right->is_nullLeaf()) { current = current->right; continue; }
-				*(current->right) = tmp;
-				create_null_leafs(current->right);
-				balance(current->right);
-				return ft::make_pair(current->right, true);
+				new_element = add_element(val, current->right);
+				break;
 			}
-			//return ft::make_pair(end(), false);
+			return ft::make_pair(new_element, true);
 		}
 
 		void erase (iterator position) {
@@ -375,6 +377,14 @@ namespace ft {
 			for (int i = 0; i < 3; i++)
 				balance_after_deletion(replaced);
 		}
+
+		void clear() {
+			//FIXME optimise
+			while (_size > 0) {
+				erase(begin());
+			}
+		}
+
 
 		void after_deletion_left_turn(node_pointer replaced) {
 			node_pointer repBrother = get_brother_node(replaced);
@@ -591,7 +601,13 @@ namespace ft {
 	private:
 		node_pointer delete_one_child_node(node_pointer e) {
 			node_pointer child;
-			child = e->left->is_nullLeaf() ? e->right : e->left;
+			if (e->left->is_nullLeaf()) {
+				child = e->right;
+				destroy_and_deallocate(e->left);
+			} else {
+				child = e->left;
+				destroy_and_deallocate(e->right);
+			}
 			if (e->parent == null_pointer)
 				_root = child;
 			else if (e->parent->left == e)
@@ -599,10 +615,7 @@ namespace ft {
 			else
 				e->parent->right = child;
 			child->parent = e->parent;
-			if (e->left == child)
-				destroy_and_deallocate(e->right);
-			else
-				destroy_and_deallocate(e->left);
+			destroy_and_deallocate(e);
 			return child;
 		}
 
@@ -611,7 +624,7 @@ namespace ft {
 			node_pointer new_val = e->right;
 			bool oldcolor = e->is_red;
 			if (new_val->left->is_nullLeaf()) {
-				*e = *new_val->node_data;
+				e = add_element(new_val->node_data, e);
 				e->is_red = oldcolor;
 				destroy_and_deallocate(new_val->left);
 				new_val->right->parent = e;
@@ -622,7 +635,7 @@ namespace ft {
 				node_pointer ret;
 				while (!new_val->left->is_nullLeaf()) //FIXME POSSIBLE BUG
 					new_val = new_val->left;
-				*e = *new_val->node_data;
+				e = add_element(new_val->node_data, e);
 				e->is_red = oldcolor;
 				new_val->parent->left = new_val->right;
 				new_val->right->parent = new_val->parent;
@@ -631,6 +644,12 @@ namespace ft {
 				destroy_and_deallocate(new_val);
 				return ret;
 			}
+		}
+
+	private:
+		node_pointer replace_node_content(node_pointer old) {
+			node_pointer new_node = _node_alloc.allocate(1);
+			_node_alloc.construct(new_node, old);
 		}
 	};
 }

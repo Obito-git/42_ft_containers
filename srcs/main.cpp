@@ -33,10 +33,21 @@ int main()
 
 	/****************** MAP **********************/
 	map<int, int> test;
+	/*
+	test.insert(ft::make_pair(1,1));
+	test.insert(ft::make_pair(2,1));
+	test.insert(ft::make_pair(3,1));
+	test.erase(2);
+	test.erase(1);
+	test.erase(3);
+	 */
+
+
 	for (int i = 0; i < 1000; i++) {
 		test.insert(make_pair(i, i));
 	}
-	/*
+
+	print(test);
 	test.erase(1);
 	test.erase(10);
 	test.erase(321);
@@ -54,7 +65,6 @@ int main()
 	test.erase(79);
 	test.erase(86);
 	test.erase(754);
-*/
 
 	for (int i = 0; i < 1000; i++)
 		if ((i % 2 == 1 || i % 10 == 0) && (i > 300))
@@ -88,6 +98,7 @@ int main()
 
 	std::cout << (test) << std::endl;
 	std::cout << (*test.begin()).first << std::endl;
+
 */
 	/************************ INSERT ********************
 	vector<int> test(10, 1);
