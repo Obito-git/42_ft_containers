@@ -40,7 +40,7 @@ namespace ft {
 		bool is_red;
 
 		/* constructor for creating a new null pointer */
-		RB_node(node_pointer par) : left(null_pointer), right(null_pointer), parent(par), is_red(false) {
+		RB_node(node_pointer par) : node_data(value_type()), left(null_pointer), right(null_pointer), parent(par), is_red(false) {
 		}
 
 		/*constructor for creation a new pointer */
@@ -96,14 +96,20 @@ namespace ft {
 		explicit RB_tree (const key_compare& comp = key_compare(),
 						  const node_allocator_type& alloc = node_allocator_type()) : _root(null_pointer), _node_alloc(alloc),
 																					  _k_comp(comp), _size(0) {
+			_end_node = _node_alloc.allocate(1);
+			_node_alloc.construct(_end_node, NULL);
 			_root = _node_alloc.allocate(1);
-			_node_alloc.construct(_root, NULL); //FIXME POSSIBLE BUG
+			_node_alloc.construct(_root, _end_node);
+			_end_node->right = _root;
+
 		}
 
 		virtual ~RB_tree() {
 			clear();
 			_node_alloc.destroy(_root);
 			_node_alloc.deallocate(_root, 1);
+			_node_alloc.destroy(_end_node);
+			_node_alloc.deallocate(_end_node, 1);
 		}
 		/************************************** VALUE COMPARE *************************************************/
 
@@ -126,6 +132,7 @@ namespace ft {
 		/************************************** VARIABLES *****************************************************/
 	private:
 		node_pointer _root;
+		node_pointer _end_node;
 		node_allocator_type _node_alloc;
 		key_compare _k_comp;
 		size_type _size;
@@ -156,6 +163,7 @@ namespace ft {
 			old->right = tmp.right;
 			old->is_red = tmp.is_red;
 			create_null_leafs(old);
+			balance(old);
 			return old;
 		}
 
@@ -260,7 +268,7 @@ namespace ft {
 
 	private:
 		void balance(node_pointer n) {
-			while (n) {
+			while (n->parent) {
 				check_basic_conditions(n);
 				n = n->parent;
 			}
@@ -336,11 +344,13 @@ namespace ft {
 			if (_root->is_nullLeaf()) {
 				_size++;
 				_root = replace_node_value(val, _root);
+				_end_node->right = _root;
 				return ft::make_pair(_root, true);
 			}
 			while (true) {
 				if (key == current->key()) {
 					//current->value() = type_helper::get_value(val); //FIXME
+					_end_node->right = _root;
 					return ft::make_pair(iterator(current), false);
 				}
 				if (_k_comp(key, current->key())) {
@@ -352,6 +362,7 @@ namespace ft {
 				break;
 			}
 			_size++;
+			_end_node->right = _root;
 			return ft::make_pair(new_element, true);
 		}
 
@@ -373,8 +384,9 @@ namespace ft {
 				balance_after_deletion(replaced);
 			if (_size == 0) {
 				_root = _node_alloc.allocate(1);
-				_node_alloc.construct(_root, NULL);
+				_node_alloc.construct(_root, _end_node);
 			}
+			_end_node->right = _root;
 		}
 
 		void clear() {
@@ -453,7 +465,7 @@ namespace ft {
 	public:
 		iterator lower_bound (const key_type& k) {
 			iterator it = begin();
-			while (_k_comp(it->first, k) && it != end())
+			while (it != end() && _k_comp(KeyValGetter<Key, Mapped>::get_key(*it), k))
 				++it;
 			return it;
 		}
@@ -461,7 +473,7 @@ namespace ft {
 	public:
 		const_iterator lower_bound (const key_type& k) const {
 			const_iterator it = begin();
-			while (_k_comp(it->first, k) && it != end())
+			while (it != end() && _k_comp(KeyValGetter<Key, Mapped>::get_key(*it), k))
 				++it;
 			return it;
 		}
@@ -469,16 +481,24 @@ namespace ft {
 	public:
 		iterator upper_bound (const key_type& k) {
 			iterator it = begin();
-			while (_k_comp(k, it->first) && it != end())
+			while (it != end()) {
+				key_type it_key = KeyValGetter<Key, Mapped>::get_key(*it);
+				if (_k_comp(k, it_key))
+					return it;
 				++it;
+			}
 			return it;
 		}
 
 	public:
 		const_iterator upper_bound (const key_type& k) const {
 			const_iterator it = begin();
-			while (_k_comp(k, it->first) && it != end())
+			while (it != end()) {
+				key_type it_key = KeyValGetter<Key, Mapped>::get_key(*it);
+				if (_k_comp(k, it_key))
+					return it;
 				++it;
+			}
 			return it;
 		}
 
@@ -489,6 +509,8 @@ namespace ft {
 		/*	Return iterator to beginning
 		* Returns an iterator referring to the first element in the map container. */
 		iterator begin(){
+			if (!_size)
+				return end();
 			node_pointer tmp = _root;
 			while (tmp->left && !tmp->left->is_nullLeaf())
 				tmp = tmp->left;
@@ -497,6 +519,8 @@ namespace ft {
 
 	public:
 		const_iterator begin() const{
+			if (!_size)
+				return end();
 			node_pointer tmp = _root;
 			while (tmp->left && !tmp->left->is_nullLeaf())
 				tmp = tmp->left;
@@ -507,26 +531,20 @@ namespace ft {
 		* Returns an iterator referring to the past-the-end element in the map container. */
 	public:
 		iterator end(){
-			node_pointer tmp = _root;
-			while (tmp->right)
-				tmp = tmp->right;
-			return iterator(tmp);
+			return iterator(_end_node);
 		}
 
 
 
 	public:
 		const_iterator end() const {
-			node_pointer tmp = _root;
-			while (tmp->right)
-				tmp = tmp->right;
-			return const_iterator(tmp);
+			return const_iterator(_end_node);
 		}
 
 		/*************************************** UTILS ***************************************************/
 	private:
 		node_pointer get_gparent_node(node_pointer n) {
-			if (!n->parent)
+			if (n == _root || n->parent == _root)
 				return null_pointer;
 			return n->parent->parent;
 		}
@@ -540,7 +558,7 @@ namespace ft {
 		}
 	private:
 		node_pointer get_brother_node(node_pointer n) {
-			if (!n->parent)
+			if (n == _root)
 				return null_pointer;
 			return n->parent->left == n ? n->parent->right : n->parent->left;
 		}
@@ -608,11 +626,13 @@ namespace ft {
 				destroy_and_deallocate(e);
 				return ret;
 			}
-
 			destroy_and_deallocate(e->left);
-			if (e->parent == null_pointer) {
-				_root = null_pointer;
+			if (e == _root) {
 				destroy_and_deallocate(e->right);
+				destroy_and_deallocate(e);
+				_root = _node_alloc.allocate(1);
+				_node_alloc.construct(_root, _end_node);
+				return null_pointer;
 			} else {
 				if (e->parent->left == e)
 					e->parent->left = e->right;
@@ -635,7 +655,7 @@ namespace ft {
 				child = e->left;
 				destroy_and_deallocate(e->right);
 			}
-			if (e->parent == null_pointer)
+			if (e == _root)
 				_root = child;
 			else if (e->parent->left == e)
 				e->parent->left = child;

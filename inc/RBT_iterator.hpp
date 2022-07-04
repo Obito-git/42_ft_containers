@@ -37,7 +37,9 @@ namespace ft {
 	private:
 		node_pointer get_root() const {
 			node_pointer tmp = _ptr;
-			while (tmp->parent)
+			if (!tmp->parent)
+				return tmp->right;
+			while (tmp->parent && tmp->parent->parent)
 				tmp = tmp->parent;
 			return tmp;
 		}
@@ -69,8 +71,8 @@ namespace ft {
 					_ptr = _ptr->left;
 				}
 			} else {
-				if (_ptr->right == get_last_nullLeaf()) {
-					_ptr = _ptr->right;
+				if (_ptr == get_root()->parent || _ptr->right == get_last_nullLeaf()) {
+					_ptr = get_root()->parent;
 					return *this;
 				}
 				p = _ptr->parent;
@@ -85,6 +87,10 @@ namespace ft {
 
 		RBT_iterator& operator--() {
 			node_pointer p;
+			if (_ptr == get_root()->parent) {
+				_ptr = get_last_nullLeaf()->parent;
+				return *this;
+			}
 			if (_ptr->left && !_ptr->left->is_nullLeaf()) {
 				_ptr = _ptr->left;
 				while (!_ptr->right->is_nullLeaf()) {

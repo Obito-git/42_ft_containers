@@ -133,8 +133,10 @@ namespace ft {
 
 		template <class InputIterator>
 		void insert (InputIterator first, InputIterator last) {
-			while (first != last)
-				_data.insert_element(*first++);
+			while (first != last) {
+				_data.insert_element(*first);
+				first++;
+			}
 		}
 
 		/*	Erase elements *
