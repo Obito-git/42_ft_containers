@@ -62,7 +62,8 @@ namespace ft {
 		/* increment / decrement */
 		RBT_iterator& operator++() {
 			node_pointer p;
-			if (!_ptr->right->is_nullLeaf()) {
+			if (_ptr->right && !_ptr->right->is_nullLeaf()) {
+				//if (!_ptr->right->is_nullLeaf()) {
 				_ptr = _ptr->right;
 				while (!_ptr->left->is_nullLeaf()) {
 					_ptr = _ptr->left;
@@ -84,12 +85,13 @@ namespace ft {
 
 		RBT_iterator& operator--() {
 			node_pointer p;
-			if (!_ptr->left->is_nullLeaf()) {
+			if (_ptr->left && !_ptr->left->is_nullLeaf()) {
 				_ptr = _ptr->left;
 				while (!_ptr->right->is_nullLeaf()) {
 					_ptr = _ptr->right;
 				}
 			} else {
+			//} else if (_ptr->right && !_ptr->right->is_nullLeaf()){
 				if (_ptr->left == get_last_nullLeaf()) { //FIXME DONT NEED ???
 					_ptr = _ptr->left;
 					return *this;
@@ -118,7 +120,7 @@ namespace ft {
 		//value_reference operator[](difference_type pos) {return *(_ptr + pos); }
 		//FIXME
 		pair_reference operator*() const { return _ptr->node_data; }
-		pair_pointer operator->() { return &_ptr->node_data; }
+		pair_pointer operator->() const { return &_ptr->node_data; }
 
 
 		/* convertion from const */

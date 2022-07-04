@@ -20,8 +20,8 @@ namespace ft {
 	template <class Key, class Mapped> struct KeyValGetter {
 		static Key get_key(const ft::pair<const Key, Mapped> &val) { return val.first; }
 		static Key get_key(const Key &val) { return val; }
-		static Mapped get_value(const ft::pair<const Key, Mapped> &val) { return val.second; }
-		static Mapped get_value(const Key &val) { return val; }
+		static Mapped& get_value(ft::pair<const Key, Mapped> &val) { return val.second; }
+		static Mapped& get_value(Key &val) { return val; }
 	};
 
 	/************************************** NODE STRUCTURE **************************************************/
@@ -49,6 +49,9 @@ namespace ft {
 											  is_red(true) {
 		}
 
+		RB_node(const RB_node& other) : node_data(other.node_data), left(other.left),
+										right(other.right), parent(other.parent), is_red(other.is_red) {}
+
 		/*	Destructor */
 		~RB_node() {}
 
@@ -57,7 +60,7 @@ namespace ft {
 		}
 
 		Key key() { return KeyValGetter<const Key, Mapped>::get_key(node_data); }
-		Mapped value() { return KeyValGetter<const Key, Mapped>::get_value(node_data); }
+		Mapped& value() { return KeyValGetter<const Key, Mapped>::get_value(node_data); }
 	};
 
 
@@ -92,10 +95,15 @@ namespace ft {
 		/*	Tree initialization constructor */
 		explicit RB_tree (const key_compare& comp = key_compare(),
 						  const node_allocator_type& alloc = node_allocator_type()) : _root(null_pointer), _node_alloc(alloc),
-																					  _k_comp(comp), _size(0) {}
+																					  _k_comp(comp), _size(0) {
+			_root = _node_alloc.allocate(1);
+			_node_alloc.construct(_root, NULL); //FIXME POSSIBLE BUG
+		}
 
 		virtual ~RB_tree() {
 			clear();
+			_node_alloc.destroy(_root);
+			_node_alloc.deallocate(_root, 1);
 		}
 		/************************************** VALUE COMPARE *************************************************/
 
@@ -126,17 +134,6 @@ namespace ft {
 
 
 	private:
-		node_pointer create_root(const value_type& val, node_pointer parent, bool red = true) {
-			node_pointer res = _node_alloc.allocate(1);
-			_node_alloc.construct(res, val);
-			res->parent = parent;
-			res->is_red = red;
-			create_null_leafs(res);
-
-			return res;
-		}
-
-	private:
 		void create_null_leafs(node_pointer parent) {
 			if (!parent->left) {
 				parent->left = _node_alloc.allocate(1);
@@ -150,24 +147,16 @@ namespace ft {
 
 
 	private:
-		node_pointer add_element(const value_type& elem, node_pointer old) {
-			node_pointer new_elem = _node_alloc.allocate(1);
-			_node_alloc.construct(new_elem, elem);
-			new_elem->parent = old->parent;
-			if (old->parent) {
-				if (old == old->parent->left)
-					old->parent->left = new_elem;
-				else
-					old->parent->right = new_elem;
-			}
-			else
-				_root = new_elem;
-			if (old->left) { old->left->parent = new_elem; new_elem->left = old->left; }
-			if (old->right) { old->right->parent = new_elem; new_elem->right = old->right; }
-			destroy_and_deallocate(old);
-			create_null_leafs(new_elem);
-			balance(new_elem);
-			return new_elem;
+		node_pointer replace_node_value(const value_type& value, node_pointer old) {
+			node tmp(*old);
+			_node_alloc.destroy(old);
+			_node_alloc.construct(old, value);
+			old->parent = tmp.parent;
+			old->left= tmp.left;
+			old->right = tmp.right;
+			old->is_red = tmp.is_red;
+			create_null_leafs(old);
+			return old;
 		}
 
 		/************************** OPERATION FOR BALANCE THE TREE **********************************************/
@@ -341,33 +330,39 @@ namespace ft {
 		/********************************** TREE MODIFIERS ***********************************************/
 	public:
 		ft::pair<iterator, bool> insert_element(const value_type& val) {
-			_size++;
 			key_type key = type_helper::get_key(val);
 			node_pointer current = _root;
 			node_pointer new_element;
-			if (!_root) { _root = create_root(val, null_pointer, false); return ft::make_pair(_root, true); }
+			if (_root->is_nullLeaf()) {
+				_size++;
+				_root = replace_node_value(val, _root);
+				return ft::make_pair(_root, true);
+			}
 			while (true) {
 				if (key == current->key()) {
 					//current->value() = type_helper::get_value(val); //FIXME
-					_size--;
 					return ft::make_pair(iterator(current), false);
 				}
 				if (_k_comp(key, current->key())) {
 					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
-					else { new_element = add_element(val, current->left); break; }
+					else { new_element = replace_node_value(val, current->left); break; }
 				}
 				if (!current->right->is_nullLeaf()) { current = current->right; continue; }
-				new_element = add_element(val, current->right);
+				new_element = replace_node_value(val, current->right);
 				break;
 			}
+			_size++;
 			return ft::make_pair(new_element, true);
 		}
 
 		void erase (iterator position) {
+			if (!_size)
+				return;
 			_size--;
 			node_pointer toDelete = find_nodeptr(position);
 			node_pointer replaced;
-			if (toDelete->right->is_nullLeaf() && toDelete->left->is_nullLeaf())
+			if ((!toDelete->right && !toDelete->left) ||
+					(toDelete->right->is_nullLeaf() && toDelete->left->is_nullLeaf()))
 				replaced = delete_lonely_node(toDelete);
 			else if (toDelete->right->is_nullLeaf() || toDelete->left->is_nullLeaf())
 				replaced = delete_one_child_node(toDelete);
@@ -376,6 +371,10 @@ namespace ft {
 			//balancing after deletion. can have 3 max rotations
 			for (int i = 0; i < 3; i++)
 				balance_after_deletion(replaced);
+			if (_size == 0) {
+				_root = _node_alloc.allocate(1);
+				_node_alloc.construct(_root, NULL);
+			}
 		}
 
 		void clear() {
@@ -491,7 +490,7 @@ namespace ft {
 		* Returns an iterator referring to the first element in the map container. */
 		iterator begin(){
 			node_pointer tmp = _root;
-			while (!tmp->left->is_nullLeaf())
+			while (tmp->left && !tmp->left->is_nullLeaf())
 				tmp = tmp->left;
 			return iterator(tmp);
 		}
@@ -499,7 +498,7 @@ namespace ft {
 	public:
 		const_iterator begin() const{
 			node_pointer tmp = _root;
-			while (!tmp->left->is_nullLeaf())
+			while (tmp->left && !tmp->left->is_nullLeaf())
 				tmp = tmp->left;
 			return const_iterator(tmp);
 		}
@@ -604,12 +603,16 @@ namespace ft {
 
 	private:
 		node_pointer delete_lonely_node(node_pointer e) {
-			node_pointer ret;
+			node_pointer ret = null_pointer;
+			if (!e->left && !e->right) {
+				destroy_and_deallocate(e);
+				return ret;
+			}
+
 			destroy_and_deallocate(e->left);
 			if (e->parent == null_pointer) {
 				_root = null_pointer;
 				destroy_and_deallocate(e->right);
-				ret = null_pointer;
 			} else {
 				if (e->parent->left == e)
 					e->parent->left = e->right;
@@ -648,7 +651,7 @@ namespace ft {
 			node_pointer new_val = e->right;
 			bool oldcolor = e->is_red;
 			if (new_val->left->is_nullLeaf()) {
-				e = add_element(new_val->node_data, e);
+				e = replace_node_value(new_val->node_data, e);
 				e->is_red = oldcolor;
 				destroy_and_deallocate(new_val->left);
 				new_val->right->parent = e;
@@ -659,7 +662,7 @@ namespace ft {
 				node_pointer ret;
 				while (!new_val->left->is_nullLeaf()) //FIXME POSSIBLE BUG
 					new_val = new_val->left;
-				e = add_element(new_val->node_data, e);
+				e = replace_node_value(new_val->node_data, e);
 				e->is_red = oldcolor;
 				new_val->parent->left = new_val->right;
 				new_val->right->parent = new_val->parent;

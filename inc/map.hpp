@@ -63,7 +63,7 @@ namespace ft {
 		}
 		/*	Copy constructor
 		* Constructs a container with a copy of each of the elements in x.*/
-		map (const map& x): _data(x.key_compare, x.allocator_type) {
+		map (const map& x): _data(x.key_comp(), x.get_allocator()) {
 			insert(x.begin(), x.end());
 		}
 
@@ -160,8 +160,8 @@ namespace ft {
 		* Member types iterator and const_iterator are bidirectional iterator types that point to elements. */
 
 		void erase (iterator first, iterator last) {
-			for (iterator it = first; it != last; it++)
-				erase(it);
+			for (; first != last; first++)
+				erase(first);
 		}
 
 		/*	Swap content
@@ -273,6 +273,11 @@ namespace ft {
 		mapped_type& operator[] (const key_type& k) {
 			insert(ft::make_pair(k, mapped_type()));
 			return find(k)->second;
+		}
+
+		//FIXME
+		key_compare key_comp() const {
+			return _data.key_comp();
 		}
 
 
