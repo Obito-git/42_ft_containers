@@ -487,18 +487,12 @@ namespace ft {
 		/*************************************** ITERATORS *******************************************/
 
 	public:
+		/*	Return iterator to beginning
+		* Returns an iterator referring to the first element in the map container. */
 		iterator begin(){
 			node_pointer tmp = _root;
 			while (!tmp->left->is_nullLeaf())
 				tmp = tmp->left;
-			return iterator(tmp);
-		}
-
-	public:
-		iterator end(){
-			node_pointer tmp = _root;
-			while (tmp->right)
-				tmp = tmp->right;
 			return iterator(tmp);
 		}
 
@@ -509,6 +503,18 @@ namespace ft {
 				tmp = tmp->left;
 			return const_iterator(tmp);
 		}
+
+		/*	Return iterator to end
+		* Returns an iterator referring to the past-the-end element in the map container. */
+	public:
+		iterator end(){
+			node_pointer tmp = _root;
+			while (tmp->right)
+				tmp = tmp->right;
+			return iterator(tmp);
+		}
+
+
 
 	public:
 		const_iterator end() const {
@@ -571,6 +577,24 @@ namespace ft {
 		node_allocator_type getAlloc() const {
 			return _node_alloc;
 		}
+		/**************************************** OBSERVERS ***************************************************/
+
+	public:
+		/*	Return key comparison object *
+		* Returns a copy of the comparison object used by the container to compare keys.*/
+
+		key_compare key_comp() const {
+			return _k_comp;
+		}
+
+		/*	Return value comparison object *
+		* Returns a comparison object that can be used to compare two elements
+		* to get whether the key of the first one goes before the second.*/
+
+		value_compare value_comp() const {
+			return value_compare(_k_comp);
+		}
+
 		/*************************************** DELETE/FREE ***************************************************/
 	private:
 		void destroy_and_deallocate(node_pointer p) {
@@ -644,12 +668,6 @@ namespace ft {
 				destroy_and_deallocate(new_val);
 				return ret;
 			}
-		}
-
-	private:
-		node_pointer replace_node_content(node_pointer old) {
-			node_pointer new_node = _node_alloc.allocate(1);
-			_node_alloc.construct(new_node, old);
 		}
 	};
 }
