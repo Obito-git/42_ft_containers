@@ -98,7 +98,7 @@ namespace ft {
 						  const node_allocator_type& alloc = node_allocator_type()) :
 						  	_root(null_pointer), _node_alloc(alloc), _k_comp(comp), _size(0), is_copy(false) {
 			_end_node = _node_alloc.allocate(1);
-			_node_alloc.construct(_end_node, NULL);
+			_node_alloc.construct(_end_node, value_type());
 			_root = _node_alloc.allocate(1);
 			_node_alloc.construct(_root, _end_node);
 			_end_node->right = _root;
@@ -608,9 +608,7 @@ namespace ft {
 	private:
 		node_pointer find_nodeptr (iterator ptr) { //FIXME need tests
 			node_pointer tmp = _root;
-			//key_type k = *ptr.first;
-			value_type kk = *ptr;
-			key_type k = kk.first; //FIXME
+			key_type k = KeyValGetter<Key, Mapped>::get_key(*ptr);
 			while (tmp && !tmp->is_nullLeaf()) {
 				if (k == tmp->key())
 					return tmp;
