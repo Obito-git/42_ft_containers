@@ -18,7 +18,7 @@ public:
 	typedef typename ft::iterator_traits<Iterator>::reference   reference;
 
 private:
-	pointer _ptr;
+	iterator_type _ptr;
 public:
 	/********************************* CONSTRUCTORS *****************************************/
 	/*	default constructor *
@@ -28,29 +28,30 @@ public:
 	/*	initalization constructor *
 	* Constructs a reverse iterator from some original iterator it. The behavior of the constructed object
 	* replicates the original, except that it iterates through its pointed elements in the reverse order.*/
-	explicit reverse_iterator (iterator_type it): _ptr(&*it) {}
+	explicit reverse_iterator (iterator_type it): _ptr(it) {}
 	/*	copy / type-cast constructor *
 	* Constructs a reverse iterator from some other reverse iterator. The constructed object keeps the same sense of iteration as rev_it*/
 	template <class Iter>
-	reverse_iterator (const reverse_iterator<Iter>& rev_it): _ptr(&*rev_it.base()) {}
+	reverse_iterator (const reverse_iterator<Iter>& rev_it): _ptr(rev_it.base()) {}
 
 	iterator_type base() const { return _ptr; }
 
 	/* dereferences */
 
 	/* increment / decrement */
-	reverse_iterator& operator++() { _ptr--; return *this; }
+	reverse_iterator& operator++() { --_ptr; return *this; }
 	reverse_iterator operator++(int) {
-		reverse_iterator temp = *this;
-		++(*this);
+		reverse_iterator<iterator_type> temp(*this);
+		--_ptr;
 		return temp;
 	}
-	reverse_iterator& operator--() { _ptr++; return *this; }
+	reverse_iterator& operator--() { ++_ptr; return *this; }
 	reverse_iterator operator--(int) {
-		reverse_iterator temp = *this;
-		--(*this);
+		reverse_iterator<iterator_type> temp(*this);
+		++_ptr;
 		return temp;
 	}
+
 
 	/* arithmetic operators +- */
 	reverse_iterator operator+(difference_type n) const { return reverse_iterator(_ptr - n); }

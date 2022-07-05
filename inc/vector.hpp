@@ -62,17 +62,10 @@ namespace ft {
 		template <class InputIterator>
 		vector (InputIterator first, InputIterator last, const allocator_type& alloc = allocator_type(),
 				typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0):
-																_data(null_pointer), _alloc(alloc), _size(0) {
-					//***************** potential error
-			if (last < first)
-				throw std::length_error("Vector range constructor iterator error");
-			_capacity = last - first;
-			_data = _alloc.allocate(_capacity);
-			random_access_iterator<value_type> tmp(first);
-			while (first != last) {
-				push_back(*first++);
-			}
+				_data(null_pointer), _alloc(alloc), _size(0), _capacity(0) {
+			assign(first, last);
 		}
+
 		/* Copy constructor *
 		Constructs a container with a copy of each of the elements in x, in the same order. */
 		vector (const vector& x): _data(null_pointer), _alloc(x._alloc), _size(0), _capacity(0) {
@@ -248,17 +241,24 @@ namespace ft {
 		* Assigns new contents to the vector, replacing its current contents, and modifying its size accordingly.
 		*   The new contents are elements constructed from each of the elements
 		* in the range between first and last, in the same order.*/
-		template <class InputIterator>
-		void assign (InputIterator first, InputIterator last,
-		typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0)
-		{
+		void assign (iterator first, iterator last){
+			if (last < first)
+				throw std::length_error("Vector range constructor iterator error");
 			size_type n = last - first;
 			if (n > capacity())
 				reserve_cleanly(n);
 			clear();
-			InputIterator tmp(first);
-			while (tmp != last)
-				push_back(*tmp++);
+			while (first != last)
+				push_back(*first++);
+		}
+
+		template <class InputIterator>
+		void assign (InputIterator first, InputIterator last,
+		typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0)
+		{
+			clear();
+			while (first != last)
+				push_back(*first++);
 		}
 
 		/*  The new contents are n elements, each initialized to a copy of val. */
@@ -303,43 +303,14 @@ namespace ft {
 
 		/* fill */
 		void insert (iterator position, size_type n, const value_type& val) {
-			/*
-			 *
-			 * TRY TO SIMPLIFY
-			 *
-			 */
-			size_type start_pos = position - begin();
-			// not using reserve for not iterate 2 times on data
-			pointer tmp_data;
-			size_type copied_elem = 0;
-			if (_size + n > _capacity)
-			{
-				if (_size + n > _size * 2)
-					_capacity = _size + n;
-				else if (_capacity == 0)
-					_capacity = 1;
-				else
-					_capacity = _size * 2;
-			}
-			tmp_data = _alloc.allocate(_capacity);
-			for (; copied_elem < start_pos; copied_elem++)
-				_alloc.construct(tmp_data + copied_elem, _data[copied_elem]);
-			for (; copied_elem - start_pos < n; copied_elem++)
-				_alloc.construct(tmp_data + copied_elem, val);
-			for (; copied_elem < _size + n; copied_elem++)
-				_alloc.construct(tmp_data + copied_elem, _data[copied_elem - n]);
-			this->~vector();
-			_data = tmp_data;
-			_size += n;
+			vector tmp(n, val);
+			insert(position, tmp.begin(), tmp.end());
 		}
 
-		/* range (3) */
-		template <class InputIterator>
-		void insert (iterator position, InputIterator first, InputIterator last,
-					 typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0) {
+		/* range (3) for random_access_operator */
+		void insert(iterator position, iterator first, iterator last) {
 			size_type start_pos = position - begin();
 			size_type n = last - first;
-			/* not using reserve for not iterate 2 times on data */
 			pointer tmp_data;
 			size_type copied_elem = 0;
 			size_type new_capacity = _capacity;
@@ -355,15 +326,24 @@ namespace ft {
 			tmp_data = _alloc.allocate(new_capacity);
 			for (; copied_elem < start_pos; copied_elem++)
 				_alloc.construct(tmp_data + copied_elem, _data[copied_elem]);
-			for (InputIterator it = first; it != last; it++, copied_elem++)
+			for (iterator it = first; it != last; it++, copied_elem++)
 				_alloc.construct(tmp_data + copied_elem, *it);
 			for (; copied_elem < _size + n; copied_elem++)
 				_alloc.construct(tmp_data + copied_elem, _data[copied_elem - n]);
 			this->~vector();
-			//_alloc.deallocate(_data, old_capacity);
 			_capacity = new_capacity;
 			_data = tmp_data;
 			_size += n;
+		}
+
+		/* range (3) for all iterators type */
+		template <class InputIterator>
+		void insert (iterator position, InputIterator first, InputIterator last,
+					 typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0) {
+			vector tmp;
+			for (; first != last; first++)
+				tmp.push_back(*first);
+			insert(position, tmp.begin(), tmp.end());
 		}
 
 		/*	Erase elements *
@@ -423,18 +403,16 @@ namespace ft {
 
 	};
 
-	//no member relational operators (vector)
-
 	/*	The equality comparison (operator==) is performed by first comparing sizes, and if they match,
 	* the elements are compared sequentially using operator==,
 	* stopping at the first mismatch (as if using algorithm equal).*/
 	template <class T, class Alloc>
-	bool operator== (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator ==(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return (lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
 	}
 
 	template <class T, class Alloc>
-	bool operator!= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator !=(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return !(lhs == rhs);
 	}
 
@@ -442,20 +420,21 @@ namespace ft {
 	* which compares the elements sequentially using operator< in a reciprocal manner
 	* (i.e., checking both a<b and b<a) and stopping at the first occurrence.*/
 	template <class T, class Alloc>
-	bool operator<  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator <(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
 	}
 
 	template <class T, class Alloc>
-	bool operator<= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator <=(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return !(rhs < lhs);
 	}
 	template <class T, class Alloc>
-	bool operator>  (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator >(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return rhs < lhs;
 	}
+
 	template <class T, class Alloc>
-	bool operator>= (const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
+	bool operator >=(const vector<T,Alloc>& lhs, const vector<T,Alloc>& rhs) {
 		return !(lhs < rhs);
 	}
 

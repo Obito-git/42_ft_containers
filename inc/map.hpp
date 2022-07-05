@@ -38,6 +38,8 @@ namespace ft {
 		//const reverse iterator
 		typedef typename	MapTree::iterator				iterator;
 		typedef typename	MapTree::const_iterator		const_iterator;
+		typedef typename	MapTree::reverse_iterator 		reverse_iterator;
+		typedef typename	MapTree::const_reverse_iterator 		const_reverse_iterator;
 		typedef				ptrdiff_t						difference_type;
 		typedef				size_t  						size_type;
 
@@ -100,6 +102,23 @@ namespace ft {
 
 		const_iterator end() const{
 			return _data.end();
+		}
+
+
+		//FIXME DESCRIBE
+		reverse_iterator rbegin() {
+			return _data.rbegin();
+		}
+
+		const_reverse_iterator rbegin() const {
+			return _data.rbegin();
+		}
+
+		reverse_iterator rend() {
+			return _data.rend();
+		}
+		const_reverse_iterator rend() const {
+			return _data.rend();
 		}
 
 		/****************************************** MODIFIERS ***********************************************/
@@ -170,9 +189,7 @@ namespace ft {
 		* Exchanges the content of the container by the content of x, which is another map of the same type. */
 
 		void swap (map& x) {
-			map<key_type, mapped_type, key_compare, allocator_type> tmp(x);
-			x = *this;
-			*this = tmp;
+			_data.swap(x._data);
 		}
 
 		/*	Clear content *
@@ -277,9 +294,22 @@ namespace ft {
 			return find(k)->second;
 		}
 
-		//FIXME
+		/**************************************** OBSERVERS ***************************************************/
+
+	public:
+		/*	Return key comparison object *
+		* Returns a copy of the comparison object used by the container to compare keys.*/
+
 		key_compare key_comp() const {
 			return _data.key_comp();
+		}
+
+		/*	Return value comparison object *
+		* Returns a comparison object that can be used to compare two elements
+		* to get whether the key of the first one goes before the second.*/
+
+		value_compare value_comp() const {
+			return _data.value_comp();
 		}
 
 
@@ -290,6 +320,47 @@ namespace ft {
 			return _data.getAlloc();
 		}
 	};
+
+	/*	The equality comparison (operator==) is performed by first comparing sizes, and if they match,
+* the elements are compared sequentially using operator==,
+* stopping at the first mismatch (as if using algorithm equal).*/
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator ==(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return (lhs.size() == rhs.size() && ft::equal(lhs.begin(), lhs.end(), rhs.begin()));
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator !=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return !(lhs == rhs);
+	}
+
+	/*	The less-than comparison (operator<) behaves as if using algorithm lexicographical_compare,
+	* which compares the elements sequentially using operator< in a reciprocal manner
+	* (i.e., checking both a<b and b<a) and stopping at the first occurrence.*/
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator <(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return (lexicographical_compare(lhs.begin(), lhs.end(), rhs.begin(), rhs.end()));
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator <=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return !(rhs < lhs);
+	}
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator >(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return rhs < lhs;
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	bool operator >=(const map<Key, T, Compare, Alloc>& lhs, const map<Key, T, Compare, Alloc>& rhs) {
+		return !(lhs < rhs);
+	}
+
+	template <class Key, class T, class Compare, class Alloc>
+	void swap (map<Key, T, Compare, Alloc>& x, map<Key, T, Compare, Alloc>&y)
+	{
+		x.swap(y);
+	}
 
 }
 

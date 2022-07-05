@@ -10,9 +10,8 @@
  * */
 #include <ostream>
 #include "pair.hpp"
-#define RED     "\033[31m"      /* Red */
-#define RESET   "\033[0m"
-#define BOLDCYAN    "\033[1m\033[36m"      /* Bold Cyan */
+#include "RBT_iterator.hpp"
+#include "reverse_iterator.hpp"
 
 namespace ft {
 	/*	Universal getter for
@@ -90,26 +89,46 @@ namespace ft {
 		/*	Iterator */
 		typedef 			RBT_iterator<node, value_type>			iterator;
 		typedef 			RBT_iterator<node, const value_type>	const_iterator;
+		typedef				ft::reverse_iterator<iterator>				reverse_iterator;
+		typedef 			ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 
 
 		/*	Tree initialization constructor */
 		explicit RB_tree (const key_compare& comp = key_compare(),
-						  const node_allocator_type& alloc = node_allocator_type()) : _root(null_pointer), _node_alloc(alloc),
-																					  _k_comp(comp), _size(0) {
+						  const node_allocator_type& alloc = node_allocator_type()) :
+						  	_root(null_pointer), _node_alloc(alloc), _k_comp(comp), _size(0), is_copy(false) {
 			_end_node = _node_alloc.allocate(1);
 			_node_alloc.construct(_end_node, NULL);
 			_root = _node_alloc.allocate(1);
 			_node_alloc.construct(_root, _end_node);
 			_end_node->right = _root;
+		}
 
+		/*	No deepcopy copy constructor */
+		RB_tree(const RB_tree& other): _root(other._root), _end_node(other._end_node), _node_alloc(other._node_alloc),
+										_k_comp(other._k_comp), _size(other._size), is_copy(true) {
+		}
+
+		/* No destruction and deallocation assignment operator */
+		RB_tree &operator=(const RB_tree& other) {
+			if (&other != this) {
+				_root = other._root;
+				_end_node = other._end_node;
+				_node_alloc = other._node_alloc;
+				_k_comp = other._k_comp;
+				_size = other._size;
+			}
+			return *this;
 		}
 
 		virtual ~RB_tree() {
-			clear();
-			_node_alloc.destroy(_root);
-			_node_alloc.deallocate(_root, 1);
-			_node_alloc.destroy(_end_node);
-			_node_alloc.deallocate(_end_node, 1);
+			if (!is_copy) {
+				clear();
+				_node_alloc.destroy(_root);
+				_node_alloc.deallocate(_root, 1);
+				_node_alloc.destroy(_end_node);
+				_node_alloc.deallocate(_end_node, 1);
+			}
 		}
 		/************************************** VALUE COMPARE *************************************************/
 
@@ -136,6 +155,7 @@ namespace ft {
 		node_allocator_type _node_alloc;
 		key_compare _k_comp;
 		size_type _size;
+		bool			is_copy;
 
 		/************************* NODES ALLOCATION AND CREATION ***********************************************/
 
@@ -427,6 +447,13 @@ namespace ft {
 			repBrother->right->right = replaced->parent;
 		}
 
+		void swap (RB_tree& x) {
+			//RB_tree<value_type, key_type , Mapped, key_compare , Alloc> tmp(x);
+			RB_tree tmp(x);
+			x = *this;
+			*this = tmp;
+		}
+
 		/*************************************** OPERATIONS *******************************************/
 
 	public:
@@ -534,12 +561,27 @@ namespace ft {
 			return iterator(_end_node);
 		}
 
-
-
 	public:
 		const_iterator end() const {
 			return const_iterator(_end_node);
 		}
+//FIXME MODIFIERS
+		reverse_iterator rbegin() {
+			return reverse_iterator(end());
+		}
+
+		const_reverse_iterator rbegin() const {
+			return const_reverse_iterator(end());
+		}
+
+		reverse_iterator rend() {
+			return reverse_iterator(begin());
+		}
+		const_reverse_iterator rend() const {
+			return const_reverse_iterator(begin());
+		}
+
+
 
 		/*************************************** UTILS ***************************************************/
 	private:
