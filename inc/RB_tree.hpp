@@ -144,7 +144,7 @@ namespace ft {
 			typedef value_type second_argument_type;
 			bool operator() (const value_type& x, const value_type& y) const
 			{
-				return comp(x.first, y.first);
+				return comp(KeyValGetter<Key, Mapped>::get_key(x), KeyValGetter<Key, Mapped>::get_key(y));
 			}
 		};
 

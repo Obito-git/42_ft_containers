@@ -23,7 +23,7 @@ namespace ft {
 	/****************************************** Member types *******************************************************/
 	public:
 		typedef 	T							value_type;
-		typedef RB_tree<value_type, value_type, value_type, Compare, Alloc>	MapTree;
+		typedef RB_tree<value_type, value_type, const value_type, Compare, Alloc>	MapTree;
 		typedef typename	MapTree::key_compare							key_compare;
 		typedef typename 	MapTree::value_compare							value_compare;
 		typedef typename	MapTree::node_allocator_type					allocator_type;
