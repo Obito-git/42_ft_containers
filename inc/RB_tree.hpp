@@ -4,14 +4,16 @@
 
 #ifndef CONTAINERS_RB_TREE_HPP
 #define CONTAINERS_RB_TREE_HPP
-/* Used links :
+/* Useful links :
+ * https://en.wikipedia.org/wiki/Red%E2%80%93black_tree
  * https://medium.com/swlh/red-black-tree-rotations-and-color-flips-10e87f72b142
  * https://www.cs.usfca.edu/~galles/visualization/RedBlack.html
+ * https://www.programiz.com/dsa/deletion-from-a-red-black-tree
  * */
 #include <ostream>
-#include "pair.hpp"
-#include "RBT_iterator.hpp"
-#include "reverse_iterator.hpp"
+#include "utils/pair.hpp"
+#include "iterator/RBT_iterator.hpp"
+#include "iterator/reverse_iterator.hpp"
 
 namespace ft {
 	/*	Universal getter for
@@ -23,7 +25,10 @@ namespace ft {
 		static Mapped& get_value(Key &val) { return val; }
 	};
 
+
+	/********************************************************************************************************/
 	/************************************** NODE STRUCTURE **************************************************/
+	/********************************************************************************************************/
 	template <class ValueType, class Key, class Mapped>
 	struct RB_node {
 	public:
@@ -38,41 +43,45 @@ namespace ft {
 		node_pointer	parent;
 		bool is_red;
 
-		/* constructor for creating a new null pointer */
-		RB_node(node_pointer par) : node_data(value_type()), left(null_pointer), right(null_pointer), parent(par), is_red(false) {
+		/* constructor for creating a null leaf node */
+		RB_node(node_pointer par) : node_data(value_type()), left(null_pointer),
+							right(null_pointer), parent(par), is_red(false) {
 		}
 
-		/*constructor for creation a new pointer */
+		/* constructor for creation a new node */
 		RB_node(const value_type &nodeData) : node_data(nodeData), left(null_pointer),
 											  right(null_pointer), parent(null_pointer),
 											  is_red(true) {
 		}
 
+		/* copy constructor */
 		RB_node(const RB_node& other) : node_data(other.node_data), left(other.left),
-										right(other.right), parent(other.parent), is_red(other.is_red) {}
+										right(other.right), parent(other.parent), is_red(other.is_red) {
+		}
 
-		/*	Destructor */
-		~RB_node() {}
-
+		/* Is node is a null leaf */
 		bool is_nullLeaf() {
 			return (!left && !right && !is_red);
 		}
 
+		/*	Getters. Returns copy of key(it's const for pair) and value reference */
 		Key key() { return KeyValGetter<const Key, Mapped>::get_key(node_data); }
 		Mapped& value() { return KeyValGetter<const Key, Mapped>::get_value(node_data); }
 	};
 
 
-	/****************************************** RB TREE CLASS **********************************************/
+	/*******************************************************************************************************/
+	/************************************** RED BLACK TREE CLASS *******************************************/
+	/*******************************************************************************************************/
 
-	template < class Key,							//map::ket_type
+	template < class Key,							//map::key_type
 			class Mapped,                         	// if ValueType is pair Mapped= map::mapped_value, otherwise Key
 			class ValueType,                       	// content type, for map ft::pair, for set other
 			class Compare = std::less<Key>,        	// map::key_compare
 			class Alloc = std::allocator<ValueType>	// map::allocator_type
 	> class RB_tree {
 	public:
-		/******************************* TYPEDEFS *******************************************/
+		/***************************************** TYPEDEFS *******************************************/
 		class ValueCompare;
 		/* Node	*/
 		typedef 	RB_node<ValueType, Key, Mapped>			node;
@@ -89,8 +98,8 @@ namespace ft {
 		/*	Iterator */
 		typedef 			RBT_iterator<node, value_type>			iterator;
 		typedef 			RBT_iterator<node, const value_type>	const_iterator;
-		typedef				ft::reverse_iterator<iterator>				reverse_iterator;
-		typedef 			ft::reverse_iterator<const_iterator>			const_reverse_iterator;
+		typedef				ft::reverse_iterator<iterator>			reverse_iterator;
+		typedef 			ft::reverse_iterator<const_iterator>	const_reverse_iterator;
 
 
 		/*	Tree initialization constructor */
@@ -121,6 +130,7 @@ namespace ft {
 			return *this;
 		}
 
+		/*	Destructor */
 		virtual ~RB_tree() {
 			if (!is_copy) {
 				clear();
@@ -160,6 +170,7 @@ namespace ft {
 		/************************* NODES ALLOCATION AND CREATION ***********************************************/
 
 
+		/*	Creating null leafs for node */
 	private:
 		void create_null_leafs(node_pointer parent) {
 			if (!parent->left) {
@@ -172,7 +183,7 @@ namespace ft {
 			}
 		}
 
-
+		/*	Destroying old node data and replacing it by new value */
 	private:
 		node_pointer replace_node_value(const value_type& value, node_pointer old) {
 			node tmp(*old);
@@ -192,6 +203,8 @@ namespace ft {
 			 * https://miro.medium.com/max/1196/1*v3n2S2CwZ9HcbTHGHLi-2w.png
 			 * */
 
+		/*		|BLACK|									|RED|		*
+		*	|RED|		|RED|		------>		|BLACK|		|BLACK|	*/
 	private:
 		void color_flip(node_pointer n) {
 			n->parent->is_red = false;
@@ -200,10 +213,12 @@ namespace ft {
 			get_aunt_node(n)->is_red = false;
 		}
 
+		/*				|A|			RIGHT ROTATION			|B|				*
+		 * 			|B|				------------>		|C|		|A|			*
+		 * 		|C|															*/
 	private:
 		void right_rotation(node_pointer n) {
 			node_pointer parent_tmp = get_gparent_node(n)->parent;
-			// if (aunt red) color flip
 			if (get_aunt_node(n)->is_red) { //color flip
 				color_flip(n);
 			} else {
@@ -227,6 +242,9 @@ namespace ft {
 			}
 		}
 
+		/*		|A|					LEFT ROTATION			|B|				*
+		* 			|B|				------------>		|A|		|C|			*
+ 		* 				|C|													*/
 	private:
 		void left_rotation(node_pointer n) {
 			node_pointer parent_tmp = get_gparent_node(n)->parent;
@@ -234,7 +252,6 @@ namespace ft {
 			if (get_aunt_node(n)->is_red) { //color flip
 				color_flip(n);
 			} else {
-				//relink node bcs of grandparent changing
 				if (!get_gparent_node(n)->parent)
 					_root = n->parent;
 				else {
@@ -254,6 +271,9 @@ namespace ft {
 			}
 		}
 
+		/*			|A|			LEFT RIGHT ROTATION			|C|				*
+ 		* 		|B|					------------>		|B|		|A|			*
+		* 			|C|														*/
 	private:
 		void left_right_rotation(node_pointer n) {
 			if (get_aunt_node(n)->is_red) {
@@ -270,6 +290,9 @@ namespace ft {
 			}
 		}
 
+		/*			|A|			RIGHT LEFT ROTATION			|C|				*
+ 		* 				|B|			------------>		|A|		|B|			*
+		* 			|C|														*/
 	private:
 		void right_left_rotation(node_pointer n) {
 			if (get_aunt_node(n)->is_red) {
@@ -286,6 +309,10 @@ namespace ft {
 			}
 		}
 
+		/*	Respecting Reb black tree rules:
+		* 1. Every node is either red or black.
+		* 2. The root and leaves are black.
+		* 3. If a node is red, then its parent is black. */
 	private:
 		void balance(node_pointer n) {
 			while (n->parent) {
@@ -313,6 +340,9 @@ namespace ft {
 		}
 
 	private:
+		/* Good luck for deletion :DDD
+		https://youtu.be/w5cvkTXY0vQ
+		* */
 		void balance_after_deletion(node_pointer replaced) {
 			if (replaced && replaced != _root && !replaced->is_red) {
 				node_pointer repBrother = get_brother_node(replaced);
@@ -369,8 +399,6 @@ namespace ft {
 			}
 			while (true) {
 				if (key == current->key()) {
-					//current->value() = type_helper::get_value(val); //FIXME
-					_end_node->right = _root;
 					return ft::make_pair(iterator(current), false);
 				}
 				if (_k_comp(key, current->key())) {
@@ -386,6 +414,7 @@ namespace ft {
 			return ft::make_pair(new_element, true);
 		}
 
+	public:
 		void erase (iterator position) {
 			if (!_size)
 				return;
@@ -409,14 +438,16 @@ namespace ft {
 			_end_node->right = _root;
 		}
 
+	public:
 		void clear() {
-			//FIXME optimise
 			while (_size > 0) {
 				erase(begin());
 			}
 		}
 
-
+		/* Good luck for deletion :DDD
+		https://youtu.be/w5cvkTXY0vQ
+		* */
 		void after_deletion_left_turn(node_pointer replaced) {
 			node_pointer repBrother = get_brother_node(replaced);
 			if (get_gparent_node(replaced) == null_pointer)
@@ -433,6 +464,9 @@ namespace ft {
 			repBrother->left = replaced->parent;
 		}
 
+		/* Good luck for deletion :DDD
+		https://youtu.be/w5cvkTXY0vQ
+		* */
 		void after_deletion_right_turn(node_pointer replaced) {
 			node_pointer repBrother = get_brother_node(replaced);
 			if (get_gparent_node(replaced) == null_pointer)
@@ -447,8 +481,9 @@ namespace ft {
 			repBrother->right->right = replaced->parent;
 		}
 
+		/*	Swapping trees content */
+	public:
 		void swap (RB_tree& x) {
-			//RB_tree<value_type, key_type , Mapped, key_compare , Alloc> tmp(x);
 			RB_tree tmp(x);
 			x = *this;
 			*this = tmp;
@@ -560,27 +595,30 @@ namespace ft {
 		iterator end(){
 			return iterator(_end_node);
 		}
-
-	public:
 		const_iterator end() const {
 			return const_iterator(_end_node);
 		}
-//FIXME MODIFIERS
+
+		/*	Return reverse iterator to reverse beginning *
+		Returns a reverse iterator pointing to the last element in the container (i.e., its reverse beginning). */
+	public:
 		reverse_iterator rbegin() {
 			return reverse_iterator(end());
 		}
-
 		const_reverse_iterator rbegin() const {
 			return const_reverse_iterator(end());
 		}
 
+		/*	Return reverse iterator to reverse end *
+		* Returns a reverse iterator pointing to the theoretical element right before the first element in the map
+		* container (which is considered its reverse end). */
+	public:
 		reverse_iterator rend() {
 			return reverse_iterator(begin());
 		}
 		const_reverse_iterator rend() const {
 			return const_reverse_iterator(begin());
 		}
-
 
 
 		/*************************************** UTILS ***************************************************/
@@ -720,7 +758,7 @@ namespace ft {
 				return e->right;
 			} else {
 				node_pointer ret;
-				while (!new_val->left->is_nullLeaf()) //FIXME POSSIBLE BUG
+				while (!new_val->left->is_nullLeaf())
 					new_val = new_val->left;
 				e = replace_node_value(new_val->node_data, e);
 				e->is_red = oldcolor;

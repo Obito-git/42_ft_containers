@@ -4,34 +4,32 @@
 
 #ifndef CONTAINERS_VECTOR_HPP
 #define CONTAINERS_VECTOR_HPP
-#include <iostream>
 #include <memory>
 #include <stdexcept>
-#include "utils.hpp"
-#include "random_access_iterator.hpp"
-#include "reverse_iterator.hpp"
-#include "algorithm.hpp"
+#include "inc/utils/utils.hpp"
+#include "inc/iterator/random_access_iterator.hpp"
+#include "inc/iterator/reverse_iterator.hpp"
+#include "inc/utils/algorithm.hpp"
 
 
 namespace ft {
 	template<typename T, class Alloc = std::allocator<T> >
 	class vector {
 	public:
-		/******************** TYPEDEFS ***********************************/
-		typedef				T								value_type;
-		typedef				Alloc							allocator_type;
-		typedef typename	allocator_type::reference		reference;
-		typedef typename	allocator_type::const_reference	const_reference;
-		typedef typename	allocator_type::pointer    		pointer;
-		typedef typename	allocator_type::const_pointer	const_pointer;
-		typedef				size_t  						size_type;
-		typedef				ptrdiff_t						difference_type;
+		/***************************** TYPEDEFS *********************************/
+		typedef				T									value_type;
+		typedef				Alloc								allocator_type;
+		typedef typename	allocator_type::reference			reference;
+		typedef typename	allocator_type::const_reference		const_reference;
+		typedef typename	allocator_type::pointer    			pointer;
+		typedef typename	allocator_type::const_pointer		const_pointer;
+		typedef				size_t  							size_type;
+		typedef				ptrdiff_t							difference_type;
 
-		typedef 			ft::random_access_iterator<value_type>	iterator;
-		typedef 			ft::random_access_iterator<const value_type> const_iterator;
-
-		typedef ft::reverse_iterator<iterator> reverse_iterator;
-		typedef ft::reverse_iterator<const_iterator> const_reverse_iterator;
+		typedef	ft::random_access_iterator<value_type>			iterator;
+		typedef	ft::random_access_iterator<const value_type>	const_iterator;
+		typedef	ft::reverse_iterator<iterator>					reverse_iterator;
+		typedef	ft::reverse_iterator<const_iterator>			const_reverse_iterator;
 
 	private:
 		pointer         _data;
@@ -70,13 +68,9 @@ namespace ft {
 		Constructs a container with a copy of each of the elements in x, in the same order. */
 		vector (const vector& x): _data(null_pointer), _alloc(x._alloc), _size(0), _capacity(0) {
 			this->insert(this->begin(), x.begin(), x.end());
-			/*
-			_data = _alloc.allocate(_capacity);	
-			for (size_type i = 0; i < _capacity; i++)
-				_alloc.construct((_data + i), *(x._data + i));
-				*/
 		}
 
+		/*	Assigment operator overloading */
 		vector& operator=(const vector& x) {
 			if (this != &x) {
 				assign(x.begin(), x.end());
@@ -88,7 +82,8 @@ namespace ft {
 		* This destroys all container elements, and deallocates all the storage capacity allocated
 		* by the vector using its allocator. */
 		virtual ~vector() {
-			for (size_type i = 0; i < _size; i++) { _alloc.destroy(_data + i); }
+			for (size_type i = 0; i < _size; i++)
+				_alloc.destroy(_data + i);
 			_alloc.deallocate(_data, _capacity);
 		}
 
@@ -101,6 +96,7 @@ namespace ft {
 		/*  Return size *
 		* Returns the number of elements in the vector.
 		* This is the number of actual objects held in the vector, which is not necessarily equal to its storage capacity. */
+	public:
 		size_type size() const {
 			return _size;
 		}
@@ -110,6 +106,7 @@ namespace ft {
 		* This is the maximum potential size the container can reach due to known system or library implementation limitations,
 		* but the container is by no means guaranteed to be able to reach that size: it can still fail to allocate
 		* storage at any point before that size is reached.*/
+	public:
 		size_type max_size () const {
 			return _alloc.max_size();
 		}
@@ -124,10 +121,10 @@ namespace ft {
 		*	If n is also greater than the current container capacity,
 		* an automatic reallocation of the allocated storage space takes place.
 		* Notice that this function changes the actual content of the container by inserting or erasing elements from it. */
+	public:
 		void resize (size_type n, value_type val = value_type()) {
 			for (; _size > n; _size--) { _alloc.destroy(&_data[_size - 1]); }
-			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); } //need tests
-			//for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); _data[_size] = val; } //need tests
+			for (; _size < n && n <= _capacity; _size++) { _alloc.construct(&_data[_size], val); }
 			if (n > capacity()) {
 				reserve(n > capacity() * 2 ? n : capacity() * 2);
 				for(; _size < n; _size++) { _alloc.construct(_data + _size, val); }
@@ -139,12 +136,14 @@ namespace ft {
 		Returns the size of the storage space currently allocated for the vector, expressed in terms of elements.
 		This capacity is not necessarily equal to the vector size. It can be equal or greater, with the extra space
 		allowing to accommodate for growth without the need to reallocate on each insertion.*/
+	public:
 		size_type capacity() const {
 			return _capacity;
 		}
 
-		/*  LeakTest whether vector is empty *
+		/*  Test whether vector is empty *
 		 * Returns whether the vector is empty (i.e. whether its size is 0). */
+	public:
 		bool empty() const {
 			return _size == 0;
 		}
@@ -155,6 +154,7 @@ namespace ft {
 		* to reallocate its storage increasing its capacity to n (or greater).
 		*   In all other cases, the function call does not cause a reallocation and the vector capacity is not affected.
 		* This function has no effect on the vector size and cannot alter its elements.*/
+	public:
 		void reserve (size_type n) {
 			if (n + _capacity > max_size()) { throw std::length_error("vector::reserve"); }
 			if (n > capacity()) {
@@ -166,6 +166,7 @@ namespace ft {
 			}
 		}
 
+		/*	Reserve memory, but not saving old content */
 	private:
 		void reserve_cleanly (size_type n) {
 			if (n > max_size()) { throw std::length_error("vector::reserve"); }
@@ -190,6 +191,7 @@ namespace ft {
 		* by throwing an out_of_range exception.
 		*   Portable programs should never call this function with an argument n
 		* that is out of range, since this causes undefined behavior.*/
+	public:
 		reference operator[](size_type n) {
 			return _data[n];
 		}
@@ -202,6 +204,7 @@ namespace ft {
 		* The function automatically checks whether n is within the bounds of valid elements in the vector,
 		* throwing an out_of_range exception if it is not (i.e., if n is greater than, or equal to, its size).
 		* This is in contrast with member operator[], that does not check against bounds.*/
+	public:
 		reference at (size_type n) {
 			if (n >= size()) { throw std::out_of_range("Out of array's bound"); }
 			return (_data[n]);
@@ -215,6 +218,7 @@ namespace ft {
 		* Returns a reference to the first element in the vector.
 		* Unlike member vector::begin, which returns an iterator to this same element, this function returns a direct reference.
 		* Calling this function on an empty container causes undefined behavior.*/
+	public:
 		reference front() {
 			return _data[0];
 		}
@@ -226,10 +230,10 @@ namespace ft {
 		* Returns a reference to the last element in the vector.
 		* Unlike member vector::end, which returns an iterator just past this element, this function returns a direct reference.
 		* Calling this function on an empty container causes undefined behavior.*/
+	public:
 		reference back() {
 			return _data[_size - 1];
 		}
-		//CONST SHIT
 		const_reference back() const {
 			return _data[_size - 1];		}
 
@@ -241,6 +245,8 @@ namespace ft {
 		* Assigns new contents to the vector, replacing its current contents, and modifying its size accordingly.
 		*   The new contents are elements constructed from each of the elements
 		* in the range between first and last, in the same order.*/
+	public:
+		//random access iterator version, guarantees that size will be checked before change vector
 		void assign (iterator first, iterator last){
 			if (last < first)
 				throw std::length_error("Vector range constructor iterator error");
@@ -252,6 +258,10 @@ namespace ft {
 				push_back(*first++);
 		}
 
+	public:
+		/*	If InputIterator is not at least of a forward iterator category
+		* (i.e., it is just an input iterator) the new capacity cannot be determined beforehand and the operation
+		* incurs in additional logarithmic complexity in the new size*/
 		template <class InputIterator>
 		void assign (InputIterator first, InputIterator last,
 		typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0)
@@ -261,6 +271,7 @@ namespace ft {
 				push_back(*first++);
 		}
 
+	public:
 		/*  The new contents are n elements, each initialized to a copy of val. */
 		void assign (size_type n, const value_type& val) {
 			if (n > capacity())
@@ -274,6 +285,7 @@ namespace ft {
 		* The content of val is copied (or moved) to the new element.
 		* This effectively increases the container size by one, which causes an automatic reallocation of the
 		* allocated storage space if -and only if- the new vector size surpasses the current vector capacity.*/
+	public:
 		void push_back (const value_type& val) {
 			if (_size == _capacity) { _capacity ? reserve(_capacity * 2) : reserve(1) ;}
 			_alloc.construct(_data + _size, val);
@@ -283,6 +295,7 @@ namespace ft {
 		/*  Delete last element. *
 		* Removes the last element in the vector, effectively reducing the container size by one.
 		* This destroys the removed element.*/
+	public:
 		void pop_back() {
 			_alloc.destroy(&back());
 			_size--;
@@ -295,6 +308,7 @@ namespace ft {
 		* the new vector size surpasses the current vector capacity. */
 
 		/*	single element */
+	public:
 		iterator insert (iterator position, const value_type& val) {
 			difference_type ind = position - begin();
 			insert(position, 1, val);
@@ -302,15 +316,18 @@ namespace ft {
 		}
 
 		/* fill */
+	public:
 		void insert (iterator position, size_type n, const value_type& val) {
 			vector tmp(n, val);
 			insert(position, tmp.begin(), tmp.end());
 		}
 
 		/* range (3) for random_access_operator */
+	public:
 		void insert(iterator position, iterator first, iterator last) {
 			size_type start_pos = position - begin();
 			size_type n = last - first;
+			if (n + _capacity > max_size()) { throw std::length_error("vector::reserve"); }
 			pointer tmp_data;
 			size_type copied_elem = 0;
 			size_type new_capacity = _capacity;
@@ -336,7 +353,8 @@ namespace ft {
 			_size += n;
 		}
 
-		/* range (3) for all iterators type */
+		/* range (3) for all iterators type, can't guarantee that they are enough memory for all elements  */
+	public:
 		template <class InputIterator>
 		void insert (iterator position, InputIterator first, InputIterator last,
 					 typename ft::enable_if<!ft::is_integral<InputIterator>::value >::type* = 0) {
@@ -349,10 +367,12 @@ namespace ft {
 		/*	Erase elements *
 		* Removes from the vector either a single element (position) or a range of elements ([first,last)).
 		* This effectively reduces the container size by the number of elements removed, which are destroyed.*/
+	public:
 		iterator erase (iterator position) {
 			return erase(position, position + 1);
 		}
 
+	public:
 		iterator erase (iterator first, iterator last) {
 			if (last - first == static_cast<difference_type>(size())) { clear(); return begin(); }
 			vector<value_type> tmp;
@@ -366,6 +386,7 @@ namespace ft {
 		/*	Swap content *
 		* Exchanges the content of the container by the content of x, which is another vector object of the same type.
 		* Sizes may differ.*/
+	public:
 		void swap (vector<T, Alloc>& x) {
 			allocator_type tmp_alloc = _alloc;
 			pointer tmp_data = _data;
@@ -386,21 +407,47 @@ namespace ft {
 		/* Clear content	*
 		* Removes all elements from the vector (which are destroyed), leaving the container with a size of 0.
 		* A reallocation is not guaranteed to happen. */
+	public:
 		void clear() {
 			while (!empty()) { pop_back(); }
 		}
 
+		/**************************************** ALLOCATOR ************************************************/
+	public:
+		/*	Get allocator *
+		* Returns a copy of the allocator object associated with the vector. */
 		allocator_type get_allocator() const {
 			return _alloc;
 		}
 
-		iterator begin() {return _data;}
-		iterator end() {return _data + _size; }
-		const_iterator begin() const { return _data; }
-		const_iterator end() const { return _data + _size; }
-		reverse_iterator rend() { return reverse_iterator(begin()); }
-		reverse_iterator rbegin() { return reverse_iterator(end()); }
+		/*************************************** ITERATORS *************************************************/
 
+		/*	Return iterator to beginning
+		* Returns an iterator pointing to the first element in the vector.
+		* Notice that, unlike member vector::front, which returns a reference to the first element,
+		* this function returns a random access iterator pointing to it.*/
+	public:
+		iterator begin() {return _data;}
+		const_iterator begin() const { return _data; }
+
+		/*	Return iterator to end
+		* Returns an iterator referring to the past-the-end element in the vector container. */
+	public:
+		iterator end() {return _data + _size; }
+		const_iterator end() const { return _data + _size; }
+
+		/*	Return reverse iterator to reverse beginning
+		* Returns a reverse iterator pointing to the last element in the vector (i.e., its reverse beginning). */
+	public:
+		reverse_iterator rbegin() { return reverse_iterator(end()); }
+		const_reverse_iterator rbegin() const { return const_reverse_iterator(end()); }
+
+		/*	Return reverse iterator to reverse end
+		* Returns a reverse iterator pointing to the theoretical element preceding
+		* the first element in the vector (which is considered its reverse end).*/
+	public:
+		reverse_iterator rend() { return reverse_iterator(begin()); }
+		const_reverse_iterator rend() const { return const_reverse_iterator(begin()); }
 	};
 
 	/*	The equality comparison (operator==) is performed by first comparing sizes, and if they match,
@@ -443,8 +490,6 @@ namespace ft {
 	{
 		x.swap(y);
 	}
-
-
 }
 
 #endif //CONTAINERS_VECTOR_HPP

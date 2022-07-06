@@ -6,20 +6,22 @@
 #define CONTAINERS_RBT_ITERATOR_HPP
 #include "iterator.hpp"
 
-//https://www.cs.odu.edu/~zeil/cs361/latest/Public/treetraversal/index.html
+ /*	Useful link:
+	https://www.cs.odu.edu/~zeil/cs361/latest/Public/treetraversal/index.html
+ */
 
 namespace ft {
 	template <typename T, typename ValType>
 	class RBT_iterator : public iterator<ft::bidirectional_iterator_tag, T> {
 	public:
-		typedef typename	ft::iterator<bidirectional_iterator_tag, ValType>			iterator_category;
-		typedef typename	iterator_category::difference_type	difference_type;
-		typedef typename 	iterator_category::value_type value_type;
-		typedef typename 	iterator_category::pointer pointer;
-		typedef typename 	iterator_category::reference reference;
-		typedef				T														node;
-		typedef				T*														node_pointer;
-		//FIXME ??????????????? const ref??
+		/*************************************** TYPEDEFS *********************************************/
+		typedef typename	ft::iterator<bidirectional_iterator_tag, ValType>	iterator_category;
+		typedef typename	iterator_category::difference_type					difference_type;
+		typedef typename 	iterator_category::value_type						value_type;
+		typedef typename 	iterator_category::pointer							pointer;
+		typedef typename 	iterator_category::reference 						reference;
+		typedef				T													node;
+		typedef				T*													node_pointer;
 
 		/*	Default constructor */
 		RBT_iterator() : _ptr(null_pointer) {}
@@ -41,9 +43,6 @@ namespace ft {
 
 		/*	Default destructor */
 		virtual ~RBT_iterator() {}
-
-		node_pointer base() const {return _ptr;} //FIXME
-
 
 		/*	Returns root pointer based of current element */
 	private:
@@ -144,22 +143,6 @@ namespace ft {
 	private:
 		node_pointer _ptr;
 	};
-
-	/*********************************** NOT MEMBER FUNCTION *********************************************/
-
-/*
-	 equality and relational operators
-	template <typename T1, typename T2>
-	bool operator==(const RBT_iterator<T1>& a, const RBT_iterator<T2>& b) {
-		return &*a == &*b;
-	}
-
-	template <typename T1, typename T2>
-	bool operator!=(const RBT_iterator<T1>& a, const RBT_iterator<T2>& b) {
-		return &*a != &*b;
-	}
-	*/
-
 }
 
 #endif //CONTAINERS_RBT_ITERATOR_HPP

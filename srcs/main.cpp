@@ -1,9 +1,6 @@
 #include <string>
 #include <stack>
 #include "../inc/ft_containers_test.hpp"
-#include "../inc/stack.hpp"
-#include "../inc/map.hpp"
-#include "../inc/RBT_iterator.hpp"
 #include <string>
 #include <map>
 using namespace ft;

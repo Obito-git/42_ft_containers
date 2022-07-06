@@ -4,7 +4,7 @@
 
 #ifndef CONTAINERS_REVERSE_ITERATOR_HPP
 #define CONTAINERS_REVERSE_ITERATOR_HPP
-#include "null_pointer.hpp"
+#include "../utils/null_pointer.hpp"
 
 namespace ft {
 template <class Iterator>

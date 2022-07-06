@@ -4,9 +4,14 @@
 
 #ifndef FT_CONTAINER_FT_CONTAINERS_TEST_HPP
 #define FT_CONTAINER_FT_CONTAINERS_TEST_HPP
-#include "vector.hpp"
-#include "pair.hpp"
+#include "../vector.hpp"
+#include "../stack.hpp"
+#include "../set.hpp"
+#include "../map.hpp"
 #include <vector>
+#include <map>
+#include <set>
+#include <stack>
 #include <iostream>
 #include <string>
 

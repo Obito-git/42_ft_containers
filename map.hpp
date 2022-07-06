@@ -5,14 +5,12 @@
 #ifndef CONTAINERS_MAP_HPP
 #define CONTAINERS_MAP_HPP
 
-#include <ostream>
-#include "pair.hpp"
-#include "null_pointer.hpp"
-#include "utils.hpp"
-#include "RBT_iterator.hpp"
-#include "RB_tree.hpp"
-#include "ft_containers_test.hpp"
-#include <vector>
+#include "inc/utils/pair.hpp"
+#include "inc/utils/null_pointer.hpp"
+#include "inc/utils/utils.hpp"
+#include "inc/iterator/RBT_iterator.hpp"
+#include "inc/RB_tree.hpp"
+#include "inc/ft_containers_test.hpp"
 
 
 namespace ft {
