@@ -14,17 +14,51 @@
 #include <stack>
 #include <iostream>
 #include <string>
+#include <list>
+#include <deque>
 
 template <typename T>
-void test_print(T t) {
+void type_print(T t) {
 	std::cout << t << std::endl;
 }
 
 template <typename T>
-void test_vector_print(T& t) {
-	for (typename T::iterator it = t.begin(); it != t.end(); it++)
-		std::cout << *it << std::endl;
-	std::cout << "size " << t.size() << " capacity " << t.capacity() << std::endl;
+void pair_print(T& it) {
+	std::cout << "Key: " << it.first << ", val " << it.second << std::endl;
+}
+
+
+template <typename T>
+void print_map_size(T& c) {
+	std::cout << "Size: " << c.size() << std::endl;
+	std::cout << "Max size: " << c.max_size() << std::endl;
+}
+
+template <typename T>
+void print_map(T& test) {
+	typename T::iterator it = test.begin();
+	while (it != test.end()) {
+		std::cout << "Key: " << it->first << ", val " << it->second << std::endl;
+		it++;
+	}
+	print_map_size(test);
+}
+
+template <typename T>
+void print_vector_size(T& c) {
+	std::cout << "Size: " << c.size() << std::endl;
+	std::cout << "Capacity: " << c.capacity() << std::endl;
+	std::cout << "Max size: " << c.max_size() << std::endl;
+}
+
+template <class T>
+void print_vector(T& test) {
+	typename T::iterator it1 = test.begin();
+	while (it1 != test.end()) {
+		std::cout << "Val: " << *it1 << std::endl;
+		it1++;
+	}
+	print_vector_size(test);
 }
 
 class LeakTest {
@@ -47,6 +81,7 @@ public:
 
 	LeakTest &operator=(const LeakTest& other) {
 		if (&other != this) {
+			delete a;
 			a = new int;
 			*a = *other.a;
 		}
@@ -71,7 +106,14 @@ void random_access_iterator_test();
 void constructor_destructor_test();
 void capacity_test();
 void access_test();
-void erase_test();
+void modifiers_test();
+void vector_benchmark();
+
+
+void stack_test();
+void stack_bench();
+
+void map_iter_cap_access();
 
 
 #endif //FT_CONTAINER_FT_CONTAINERS_TEST_HPP

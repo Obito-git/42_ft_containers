@@ -6,7 +6,7 @@
 using namespace ft;
 void capacity_test() {
 	vector<int> test;
-	test_vector_print(test); //showing capacity and size inside
+	print_vector(test); //showing capacity and size inside
 	std::cout << test.max_size() << std::endl;
 	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
 	try {
@@ -16,12 +16,12 @@ void capacity_test() {
 		std::cout << err.what() << std::endl;
 	}
 	test.reserve(10);
-	test_vector_print(test); //showing capacity and size inside
+	print_vector(test); //showing capacity and size inside
 	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
-	for (int i = 0; i < 5000; i++)
+	for (int i = 0; i < 50; i++)
 		test.push_back(i);
 	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
-	test_vector_print(test); //showing capacity and size inside
+	print_vector(test); //showing capacity and size inside
 }
 
 void access_test() {

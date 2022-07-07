@@ -73,7 +73,8 @@ namespace ft {
 		/*	Assigment operator overloading */
 		vector& operator=(const vector& x) {
 			if (this != &x) {
-				assign(x.begin(), x.end());
+				clear();
+				insert(begin(), x.begin(), x.end());
 			}
 			return *this;
 		}
@@ -318,8 +319,29 @@ namespace ft {
 		/* fill */
 	public:
 		void insert (iterator position, size_type n, const value_type& val) {
-			vector tmp(n, val);
-			insert(position, tmp.begin(), tmp.end());
+			size_type start_pos = position - begin();
+			// not using reserve for not iterate 2 times on data
+			pointer tmp_data;
+			size_type copied_elem = 0;
+			if (_size + n > _capacity)
+			{
+				if (_size + n > _size * 2)
+					_capacity = _size + n;
+				else if (_capacity == 0)
+					_capacity = 1;
+				else
+					_capacity = _size * 2;
+			}
+			tmp_data = _alloc.allocate(_capacity);
+			for (; copied_elem < start_pos; copied_elem++)
+				_alloc.construct(tmp_data + copied_elem, _data[copied_elem]);
+			for (; copied_elem - start_pos < n; copied_elem++)
+				_alloc.construct(tmp_data + copied_elem, val);
+			for (; copied_elem < _size + n; copied_elem++)
+				_alloc.construct(tmp_data + copied_elem, _data[copied_elem - n]);
+			this->~vector();
+			_data = tmp_data;
+			_size += n;
 		}
 
 		/* range (3) for random_access_operator */
@@ -375,12 +397,15 @@ namespace ft {
 	public:
 		iterator erase (iterator first, iterator last) {
 			if (last - first == static_cast<difference_type>(size())) { clear(); return begin(); }
-			vector<value_type> tmp;
-			tmp.assign(begin(), first);
-			difference_type ret_ind = tmp.size();
-			tmp.insert(tmp.end(), last, end());
-			this->assign(tmp.begin(), tmp.end());
-			return (_data + ret_ind);
+			int first_pos = first - begin();
+			size_type elem_to_del = size() - (last - first);
+			size_type i;
+			for (i = 0; (last + i) != end(); i++, first++) {
+				*first = *(last + i);
+			};
+			while (size() > elem_to_del)
+				pop_back();
+			return (_data + first_pos);
 		}
 
 		/*	Swap content *

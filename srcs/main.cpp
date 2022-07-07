@@ -3,144 +3,122 @@
 #include "../inc/ft_containers_test.hpp"
 #include <string>
 #include <map>
+#include <iterator>
+#include <sys/time.h>
 using namespace ft;
 
-void print(map<int, int>& test) {
-	map<int, int>::iterator it1 = test.begin();
+#define T_SIZE_TYPE typename vector<T>::size_type
 
-	while (it1 != test.end()) {
-		std::cout << it1->first  << std::endl;
-		it1++;
+template <typename T>
+void	printSize(vector<T> const &vct, bool print_content = true)
+{
+	const T_SIZE_TYPE size = vct.size();
+	const T_SIZE_TYPE capacity = vct.capacity();
+	const std::string isCapacityOk = (capacity >= size) ? "OK" : "KO";
+// Cannot limit capacity's max value because it's implementation dependent
+
+	std::cout << "size: " << size << std::endl;
+	std::cout << "capacity: " << isCapacityOk << std::endl;
+	std::cout << "max_size: " << vct.max_size() << std::endl;
+	if (print_content)
+	{
+		typename vector<T>::const_iterator it = vct.begin();
+		typename vector<T>::const_iterator ite = vct.end();
+		std::cout << std::endl << "Content is:" << std::endl;
+		for (; it != ite; ++it)
+			std::cout << "- " << *it << std::endl;
 	}
+	std::cout << "###############################################" << std::endl;
 }
+
+
+#define TESTED_TYPE std::string
+
+void	checkErase(vector<TESTED_TYPE> const &vct,
+vector<TESTED_TYPE>::const_iterator const &it)
+{
+static int i = 0;
+std::cout << "[" << i++ << "] " << "erase: " << it - vct.begin() << std::endl;
+printSize(vct);
+}
+
+int		main1(void)
+{
+	vector<TESTED_TYPE> vct(10);
+
+	for (unsigned long int i = 0; i < vct.size(); ++i)
+		vct[i] = std::string((vct.size() - i), i + 65);
+	printSize(vct);
+
+	checkErase(vct, vct.erase(vct.begin() + 2));
+
+	checkErase(vct, vct.erase(vct.begin()));
+	checkErase(vct, vct.erase(vct.end() - 1));
+
+	checkErase(vct, vct.erase(vct.begin(), vct.begin() + 3));
+	checkErase(vct, vct.erase(vct.end() - 3, vct.end() - 1));
+
+	vct.push_back("Hello");
+	vct.push_back("Hi there");
+	printSize(vct);
+	checkErase(vct, vct.erase(vct.end() - 3, vct.end()));
+
+	vct.push_back("ONE");
+	vct.push_back("TWO");
+	vct.push_back("THREE");
+	vct.push_back("FOUR");
+	printSize(vct);
+	checkErase(vct, vct.erase(vct.begin(), vct.end()));
+	return (0);
+}
+
+
 int main()
 {
+	long seconds;
+	long microseconds;
+	double elapsed;
+	struct timeval begin, end;
+	gettimeofday(&begin, 0);
 	/******************* VECTOR ************************/
-	//random_access_iterator_test();
-	//constructor_destructor_test();
-	//capacity_test();
-	//access_test();
-	//erase_test();
-
-	/******************* STACK ************************/
-	//vector<int> test;
-	//stack<int, vector<int> > a(test);
-	//std::cout << (a.empty() ? "true" : "false") << std::endl;
-	//std::cout << (a.top()) << std::endl;
-
-	/****************** MAP **********************/
-	map<int, int> test;
 	/*
-	test.insert(ft::make_pair(1,1));
-	test.insert(ft::make_pair(2,1));
-	test.insert(ft::make_pair(3,1));
-	test.erase(2);
-	test.erase(1);
-	test.erase(3);
-	 */
+	random_access_iterator_test();
+	constructor_destructor_test();
+	capacity_test();
+	access_test();
+	modifiers_test();
+	vector_benchmark();
 
-
-	for (int i = 0; i < 1000; i++) {
-		test.insert(make_pair(i, i));
-	}
-
-	print(test);
-	test.erase(1);
-	test.erase(10);
-	test.erase(321);
-	test.erase(54);
-	test.erase(991);
-	test.erase(500);
-	test.erase(325);
-	test.erase(666);
-	test.erase(763);
-	test.erase(3);
-	test.erase(123);
-	test.erase(432);
-	test.erase(111);
-	test.erase(19);
-	test.erase(79);
-	test.erase(86);
-	test.erase(754);
-
-	for (int i = 0; i < 1000; i++)
-		if ((i % 2 == 1 || i % 10 == 0) && (i > 300))
-			test.erase(i);
-	print(test);
-	for (int i = 0; i < 30; i++)
-		test.erase(i);
-	print(test);
-	for (int i = 40; i < 50; i++)
-		test.erase(i);
-	print(test);
-	for (int i = 70; i < 100; i++)
-		test.erase(i);
-	print(test);
-	for (int i = 150; i < 200; i++)
-		test.erase(i);
-	print(test);
-	for (int i = 233; i < 277; i++)
-		test.erase(i);
-	print(test);
-	/*§
-	test.insert(make_pair(15, 600));
-	std::cout << (test) << std::endl;
-	test.insert(make_pair(30, 600));
-	std::cout << (test) << std::endl;
-	test.insert(make_pair(31, 600));
-	std::cout << (test) << std::endl;
-	test.insert(make_pair(32, 600));
-	std::cout << (test) << std::endl;
-	test.insert(make_pair(33, 600));
-
-	std::cout << (test) << std::endl;
-	std::cout << (*test.begin()).first << std::endl;
-
+	gettimeofday(&end, 0);
+	end.tv_sec - begin.tv_sec;
+	end.tv_usec - begin.tv_usec;
+	seconds + microseconds*1e-6;
+	std::cout << "vector " << elapsed << " seconds" << std::endl;
 */
-	/************************ INSERT ********************
-	vector<int> test(10, 1);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	vector<int>::iterator it = test.end();
-	test.insert(it, 42);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin(), 25);
-	test.insert(test.begin() + 4, 244);
-	test.insert(test.begin() + 10, 211);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.end(), 243, 999);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin(), 421, 512);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin() + 4, 332, 816);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	//insert iterator test
-	vector<int> tmp;
-	for (int i = 0; i < 1000000; i++)
-		tmp.push_back(i);
-	std::cout << "size: " << tmp.size() << " capacity: " << tmp.capacity() << std::endl;
-	test.insert(test.begin(), tmp.begin(), tmp.begin() + 3000);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.begin() + 1777, tmp.begin() + 3000 , tmp.begin() + 6000);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
-	test.insert(test.end(), tmp.begin() + 6000 , tmp.begin() + 66666);
-	std::cout << "size: " << test.size() << " capacity: " << test.capacity() << std::endl;
-	for (it = test.begin(); it != test.end(); it++)
-		std::cout << *it << std::endl;
+	/******************* STACK ************************/
+/*
+	gettimeofday(&begin, 0);
 
+	stack_test();
+	stack_bench();
+
+	gettimeofday(&end, 0);
+	seconds = end.tv_sec - begin.tv_sec;
+	microseconds = end.tv_usec - begin.tv_usec;
+	elapsed = seconds + microseconds*1e-6;
+	std::cout << "stack " << elapsed << " seconds" << std::endl;
 */
+	/******************* MAP ************************/
+
+	gettimeofday(&begin, 0);
+
+	map_iter_cap_access();
+
+	gettimeofday(&end, 0);
+	seconds = end.tv_sec - begin.tv_sec;
+	microseconds = end.tv_usec - begin.tv_usec;
+	elapsed = seconds + microseconds*1e-6;
+	std::cout << "map " << elapsed << " seconds" << std::endl;
+
 	return 0;
 }

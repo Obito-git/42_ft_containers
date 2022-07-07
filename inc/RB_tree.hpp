@@ -194,7 +194,7 @@ namespace ft {
 			old->right = tmp.right;
 			old->is_red = tmp.is_red;
 			create_null_leafs(old);
-			balance(old);
+			//balance(old);
 			return old;
 		}
 
@@ -708,8 +708,8 @@ namespace ft {
 			if (e == _root) {
 				destroy_and_deallocate(e->right);
 				destroy_and_deallocate(e);
-				_root = _node_alloc.allocate(1);
-				_node_alloc.construct(_root, _end_node);
+				//_root = _node_alloc.allocate(1);
+				//_node_alloc.construct(_root, _end_node);
 				return null_pointer;
 			} else {
 				if (e->parent->left == e)

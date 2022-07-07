@@ -3,9 +3,10 @@ CC = c++
 CFLAGS = -Wall -Werror -Wextra -std=c++98 -g3 
 SRCS_DIR = srcs/
 VT = vector_test
-SRCS = main.cpp \
+SRCS = main.cpp benchmark.cpp stack_test/stack_test.cpp \
 	$(VT)/random_access_operator_test.cpp $(VT)/constructor_destructor_test.cpp \
-	$(VT)/capacity_and_access.cpp $(VT)/modifiers.cpp
+	$(VT)/capacity_and_access.cpp $(VT)/modifiers.cpp \
+	map_test/iter_capacity_access.cpp
 OBJ/OBJECTS		=	$(patsubst $(SRCS_DIR)%.cpp, obj/%.o, $(SRCS))
 SRCS	:= $(foreach file,$(SRCS),$(SRCS_DIR)$(file))
 
@@ -20,6 +21,8 @@ $(NAME): $(OBJ/OBJECTS)
 obj:
 	mkdir obj
 	mkdir obj/vector_test
+	mkdir obj/stack_test
+	mkdir obj/map_test
 
 clean:
 	rm -rf obj
