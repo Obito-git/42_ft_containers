@@ -54,3 +54,11 @@ void stack_bench() {
 	type_print(a.empty());
 	type_print(a.size());
 }
+
+
+void map_bench() {
+	map<const int, int> m;
+	for (int i = 0; i < 20000; i++)
+		m.insert(make_pair(i,i));
+	print_map(m);
+}

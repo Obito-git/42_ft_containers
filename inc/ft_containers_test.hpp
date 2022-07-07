@@ -114,6 +114,7 @@ void stack_test();
 void stack_bench();
 
 void map_iter_cap_access();
+void map_bench();
 
 
 #endif //FT_CONTAINER_FT_CONTAINERS_TEST_HPP

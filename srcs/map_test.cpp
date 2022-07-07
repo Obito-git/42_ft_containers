@@ -2,7 +2,7 @@
 // Created by amyroshn on 06/07/22.
 //
 
-#include "../../inc/ft_containers_test.hpp"
+#include "../inc/ft_containers_test.hpp"
 
 using namespace ft;
 
@@ -91,21 +91,59 @@ void map_access() {
 
 void map_leaks() {
 	map<const int, LeakTest> test;
-	for (int i = 0; i < 10000; i++) {
+	for (int i = 0; i < 1000; i++) {
 		LeakTest a(i);
 		test.insert(make_pair(i, a));
 	}
 	print_map_size(test);
 }
 
-void map_iter_cap_access() {
-	//map_iter();
-	//map_access();
-	//map_leaks();
-	map<const int, int> test;
-	for (int i = 1; i < 10000000; i++) {
+
+void map_swap_operations() {
+	map<const int, int> a;
+	map<const int, int> b;
+
+	for (int i = 1; i < 100; i++)
+		a.insert(make_pair(i,i));
+	for (int i = 1; i < 300; i++)
+		b.insert(make_pair(i,i));
+	print_map(a);
+	print_map(b);
+	a.swap(b);
+	print_map(a);
+	print_map(b);
+
+
+	//find and count
+	pair_print(*a.find(50));
+	pair_print(*a.find(150));
+	type_print(a.count(50));
+	type_print(a.count(150));
+
+	//lower upper bound
+	pair_print(*a.lower_bound(50));
+	pair_print(*a.lower_bound(150));
+	pair_print(*a.upper_bound(50));
+	pair_print(*a.upper_bound(150));
+
+
+	map<const int,int> test;
+	for (int i = 1; i < 200; i++){
 		test.insert(make_pair(i,i));
-		if (i % 500 == 0)
-			test.erase(test.begin(), test.end());
 	}
+	print_map(test);
+	for(int i = 1; i < 50; i++)
+		test.erase(i);
+	print_map(test);
+	for(int i = 150; i < 200; i++)
+		test.erase(i);
+	print_map(test);
+}
+
+void map_iter_cap_access() {
+	map_iter();
+	map_access();
+	map_leaks();
+	map_swap_operations();
+
 }

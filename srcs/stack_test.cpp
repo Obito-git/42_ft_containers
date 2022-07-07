@@ -1,7 +1,7 @@
 //
 // Created by amyroshn on 06/07/22.
 //
-#include "../../inc/ft_containers_test.hpp"
+#include "../inc/ft_containers_test.hpp"
 
 using namespace ft;
 

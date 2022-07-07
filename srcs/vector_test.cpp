@@ -1,11 +1,167 @@
 //
-// Created by amyroshn on 19/06/22.
+// Created by Anton on 19/06/2022.
 //
-#include "../../inc/ft_containers_test.hpp"
+#include "../inc/ft_containers_test.hpp"
 
 using namespace ft;
+void capacity_test() {
+	vector<int> test;
+	print_vector(test); //showing capacity and size inside
+	std::cout << test.max_size() << std::endl;
+	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
+	try {
+		test.reserve(test.max_size() + 1);
+	} catch (std::length_error& err) {
+		std::cout << "exception catched" << std::endl;
+		std::cout << err.what() << std::endl;
+	}
+	test.reserve(10);
+	print_vector(test); //showing capacity and size inside
+	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
+	for (int i = 0; i < 50; i++)
+		test.push_back(i);
+	std::cout << (test.empty() ? "empty" : "not empty") << std::endl;
+	print_vector(test); //showing capacity and size inside
+}
+
+void access_test() {
+	vector<std::string> test;
+	test.push_back("hello");
+	test.push_back("hello1");
+	test.push_back("hello2");
+	test.push_back("hello3");
+	try {
+		test.at(1000);
+	} catch (std::exception& e) {
+		std::cout << "exception is catched" << std::endl;
+	}
+	std::cout << test[0] << std::endl;
+	std::cout << test[1] << std::endl;
+	std::cout << test[2] << std::endl;
+	std::cout << test.front() << " " << test.back() << std::endl;
+}
+
+void fill_and_copy_constructor() {
+	vector<LeakTest> b(100, 42);
+	print_vector_size(b);
+	vector<int>a;
+	print_vector(a);
+	vector<vector<LeakTest> > c(1000, b);
+	vector<LeakTest> bb(b);
+	print_vector(bb);
+	vector<int>aa(a);
+	print_vector(aa);
+	vector<vector<LeakTest> > cc(c);
+}
+
+void default_constructor() {
+	vector<LeakTest> b;
+	print_vector(b);
+	vector<int>a;
+	print_vector(a);
+	vector<vector<LeakTest> > c;
+	std::cout << "size " << c.size() << " capacity " << c.capacity() << std::endl;
+}
+
+void fill_range_constructor_and_assign_operator() {
+	vector<int> a(500);
+	for (int i = 0; i < 500; i++)
+		a.push_back(i);
+	vector<int> tested(a.begin() + 111, a.begin() + 333);
+	print_vector(tested);
+	vector<int> tested2(a.begin(), a.begin());
+	print_vector(tested2);
+	vector<int> tested3(a.end(), a.end());
+	print_vector(tested3);
+	vector<int> tested4(a.begin(), a.end());
+	print_vector(tested4);
+	vector<LeakTest> l(1000, 42);
+	vector<LeakTest> tested5 = l;
+	vector<int> tested6;
+	vector<int> tested7;
+	vector<int> tested8;
+	tested6 = tested;
+	tested7 = tested2;
+	tested8 = tested3;
+	print_vector(l);
+	print_vector(tested6);
+	print_vector(tested7);
+	print_vector(tested8);
+}
+
+void constructor_destructor_test() {
+	default_constructor();
+	fill_and_copy_constructor();
+	fill_range_constructor_and_assign_operator();
+}
+
+void modifiers_test() {
+	/***************************** ERASE ********************************/
+	vector<int> test;
+	for (int i = 0; i < 100; i++)
+		test.push_back(i);
+	std::cout << *test.erase(test.begin(), test.begin() + 5) << std::endl;
+	print_vector(test);
+	std::cout << *test.erase(test.begin() + 50, test.end()) << std::endl;
+	print_vector(test);
+	test.erase(test.begin(), test.end());
+	print_vector(test);
+
+	vector<LeakTest> test2(100, 123);
+	std::cout << *test2.erase(test2.begin()) << std::endl;;
+	std::cout << *test2.erase(test2.begin() + 22) << std::endl;;
+	std::cout << *test2.erase(test2.begin() + 42) << std::endl;;
+	std::cout << *test2.erase(test2.begin() + 11) << std::endl;;
+	std::cout << *test2.erase(test2.begin() + 71) << std::endl;;
+	print_vector(test2);
+
+	vector<int>::iterator test_it = test.begin();
+	while (test_it++ != test.end())
+		if (*test_it % 2 == 0)
+			test.erase(test_it);
+	print_vector(test);
+
+	/************************* ASSIGN ************************************/
+	std::list<char> test_list;
+	char i = 40;
+	while (i < 126)
+		test_list.push_back(i++);
+	vector<char> test_other_iter;
+	for (int ia = 0; ia < 100; ia++)
+		test_other_iter.push_back(static_cast<char>(ia));
+	test_other_iter.assign(test_list.begin(), test_list.end());
+	print_vector(test_other_iter);
+	test_other_iter.assign(10, 'a');
+	print_vector(test_other_iter);
+	test_other_iter.assign(133, 'o');
+	print_vector(test_other_iter);
 
 
+	/************************* INSERT *******************************/
+	test_other_iter.insert(test_other_iter.begin(), 'a');
+	print_vector(test_other_iter);
+	test_other_iter.insert(test_other_iter.begin() + 100, 42, 'h');
+	print_vector(test_other_iter);
+	test_other_iter.insert(test_other_iter.end() - 1, test_list.begin(), test_list.end());
+	print_vector(test_other_iter);
+
+
+
+	/************************* SWAP *******************************/
+	vector<char> empty;
+	empty.swap(test_other_iter);
+	print_vector(empty);
+	print_vector(test_other_iter);
+	test_other_iter = empty;
+
+	/************************* clear *******************************/
+	print_vector(empty);
+	empty.clear();
+	print_vector(empty);
+	empty.clear();
+	print_vector(empty);
+
+}
 
 void random_access_iterator_test() {
 	vector<int> a(5);
