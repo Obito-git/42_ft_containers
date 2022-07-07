@@ -58,7 +58,10 @@ void stack_bench() {
 
 void map_bench() {
 	map<const int, int> m;
-	for (int i = 0; i < 20000; i++)
-		m.insert(make_pair(i,i));
-	print_map(m);
+	for (int i = 1; i < 100000; i++) {
+		m.insert(make_pair(i, i));
+		if (i == 99999)
+			m.size();
+	}
+	//print_map(m);
 }

@@ -57,7 +57,7 @@ namespace ft {
 
 	private:
 		/*	Returns last null leaf (right child of last element) */
-		node_pointer get_last_nullLeaf() const {
+		node_pointer get_last_leaf() const {
 			node_pointer tmp = get_root();
 			while (tmp->right)
 				tmp = tmp->right;
@@ -66,7 +66,7 @@ namespace ft {
 
 	private:
 		/*	Returns first null leaf (left child of left element) */
-		node_pointer get_first_nullLeaf() const {
+		node_pointer get_first_leaf() const {
 			node_pointer tmp = get_root();
 			while (tmp->left)
 				tmp = tmp->left;
@@ -87,18 +87,19 @@ namespace ft {
 		/* increment / decrement */
 		RBT_iterator& operator++() {
 			node_pointer p;
-			if (_ptr->right && !_ptr->right->is_nullLeaf()) {
+			if (_ptr->right && _ptr->right) {
 				_ptr = _ptr->right;
-				while (!_ptr->left->is_nullLeaf()) {
+				while (_ptr->left) {
 					_ptr = _ptr->left;
 				}
 			} else {
-				if (_ptr == get_root()->parent || _ptr->right == get_last_nullLeaf()) {
-					_ptr = get_root()->parent;
+				node_pointer root = get_root();
+				if (_ptr == root->parent || _ptr->right == get_last_leaf()) {
+					_ptr = root->parent;
 					return *this;
 				}
 				p = _ptr->parent;
-				while (p && !p->is_nullLeaf() && _ptr == p->right) {
+				while (p && _ptr == p->right) { // FIXME CONDITION
 					_ptr = p;
 					p = p->parent;
 				}
@@ -110,21 +111,22 @@ namespace ft {
 		RBT_iterator& operator--() {
 			node_pointer p;
 			if (_ptr == get_root()->parent) {
-				_ptr = get_last_nullLeaf()->parent;
+				_ptr = get_last_leaf()->parent;
 				return *this;
 			}
-			if (_ptr->left && !_ptr->left->is_nullLeaf()) {
+			if (_ptr->left && _ptr->left) {
 				_ptr = _ptr->left;
-				while (!_ptr->right->is_nullLeaf()) {
+				while (_ptr->right) {
 					_ptr = _ptr->right;
 				}
 			} else {
-				if (_ptr == get_root()->parent || _ptr->left == get_first_nullLeaf()) {
-					_ptr = get_root()->parent;
+				node_pointer root = get_root();
+				if (_ptr == root->parent || _ptr->left == get_first_leaf()) {
+					_ptr = root->parent;
 					return *this;
 				}
 				p = _ptr->parent;
-				while (p && !p->is_nullLeaf() && _ptr == p->left) {
+				while (p && _ptr == p->left) { //FIXME condition
 					_ptr = p;
 					p = p->parent;
 				}
