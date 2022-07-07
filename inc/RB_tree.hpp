@@ -194,7 +194,7 @@ namespace ft {
 			old->right = tmp.right;
 			old->is_red = tmp.is_red;
 			create_null_leafs(old);
-			//balance(old);
+			balance(old);
 			return old;
 		}
 
