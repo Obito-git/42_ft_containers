@@ -58,10 +58,31 @@ void stack_bench() {
 
 void map_bench() {
 	map<const int, int> m;
-	for (int i = 1; i < 100000; i++) {
-		m.insert(make_pair(i, i));
-		if (i == 99999)
-			m.size();
+	for (int i = 1; i < 10000000; i++)
+		m.insert(make_pair(i, i * 2));
+	map<const int, int>::iterator it = m.begin();
+	while (it->first < 1000000) {
+		if (it->first % 2 == 0)
+			m.erase(it);
+		it++;
 	}
-	//print_map(m);
+	print_map_size(m);
+	m.erase(m.find(5000000), m.find(7500000));
+	print_map_size(m);
+}
+
+
+void set_bench() {
+	map<const int, int> m;
+	for (int i = 1; i < 10000000; i++)
+		m.insert(make_pair(i, i * 2));
+	map<const int, int>::iterator it = m.begin();
+	while (it->first < 1000000) {
+		if (it->first % 2 == 0)
+			m.erase(it);
+		it++;
+	}
+	print_map_size(m);
+	m.erase(m.find(5000000), m.find(7500000));
+	print_map_size(m);
 }

@@ -87,7 +87,7 @@ namespace ft {
 		/* increment / decrement */
 		RBT_iterator& operator++() {
 			node_pointer p;
-			if (_ptr->right && !_ptr->right->is_nullLeaf()) {
+			if (_ptr && _ptr->right && !_ptr->right->is_nullLeaf()) {
 				_ptr = _ptr->right;
 				while (!_ptr->left->is_nullLeaf()) {
 					_ptr = _ptr->left;

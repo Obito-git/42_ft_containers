@@ -1,61 +1,32 @@
-#include <string>
-#include <stack>
 #include "../inc/ft_containers_test.hpp"
-#include <string>
-#include <map>
-#include <iterator>
-#include <sys/time.h>
+
 using namespace ft;
 
-int main()
-{
-	long seconds;
-	long microseconds;
-	double elapsed;
-	struct timeval begin, end;
+
+int main(int argc, char** argv) {
+	if (argc != 2)
+	{
+		(void) argv;
+		std::cerr << "Usage: ./test seed" << std::endl;
+		std::cerr << "Provide a seed please" << std::endl;
+		std::cerr << "Count value:" << COUNT << std::endl;
+		return 1;
+	}
+	struct timeval begin;
 	gettimeofday(&begin, 0);
-	/******************* VECTOR ************************/
-	/*
-	random_access_iterator_test();
-	constructor_destructor_test();
-	capacity_test();
-	access_test();
-	modifiers_test();
-	vector_benchmark();
+	std::string nmsp = "using namespace ft;";
+	std::string name;
+	name = nmsp.find("ft") != std::string::npos ? "[ft] " : "[std] ";
 
-	gettimeofday(&end, 0);
-	seconds = end.tv_sec - begin.tv_sec;
-	microseconds = end.tv_usec - begin.tv_usec;
-	elapsed = seconds + microseconds*1e-6;
-	std::cout << "vector " << elapsed << " seconds" << std::endl;
-	 */
-	/******************* STACK ************************/
-	/*
-	gettimeofday(&begin, 0);
+	std::cout << name << "Subject test: " << subject_test(argv[1]) << std::endl;
 
-	stack_test();
-	stack_bench();
+	bool bench = true;
+	double vec = run_vector_tests(bench);
+	double sta = run_stack_tests(bench);
+	double mp = run_map_tests(bench);
+	double st = run_set_tests(bench);
+	std::cout << name << "vector: " << vec << ", stack: " << sta << ", map: " << mp << ", set: " << st;
+	std::cout << "| total: " << print_used_time(begin) << std::endl;
 
-	gettimeofday(&end, 0);
-	seconds = end.tv_sec - begin.tv_sec;
-	microseconds = end.tv_usec - begin.tv_usec;
-	elapsed = seconds + microseconds*1e-6;
-	std::cout << "stack " << elapsed << " seconds" << std::endl;
-	 */
-	/******************* MAP ************************/
-
-	gettimeofday(&begin, 0);
-
-	//map_iter_cap_access();
-	map_bench();
-
-	map<const int, int> a;
-
-	gettimeofday(&end, 0);
-	seconds = end.tv_sec - begin.tv_sec;
-	microseconds = end.tv_usec - begin.tv_usec;
-	elapsed = seconds + microseconds*1e-6;
-	std::cout << "map " << elapsed << " seconds" << std::endl;
-
-	return 0;
+	return (0);
 }

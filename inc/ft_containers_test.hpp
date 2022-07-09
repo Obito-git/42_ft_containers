@@ -16,6 +16,22 @@
 #include <string>
 #include <list>
 #include <deque>
+#include <stdlib.h>
+#include <iterator>
+#include <sys/time.h>
+
+
+#define MAX_RAM 4294967296
+#define BUFFER_SIZE 4096
+#define COUNT (MAX_RAM / (int)sizeof(Buffer))
+
+
+
+struct Buffer
+{
+	int idx;
+	char buff[BUFFER_SIZE];
+};
 
 template <typename T>
 void type_print(T t) {
@@ -45,6 +61,16 @@ void print_map(T& test) {
 }
 
 template <typename T>
+void print_set(T& test) {
+	typename T::iterator it = test.begin();
+	while (it != test.end()) {
+		std::cout << "val " << *it << std::endl;
+		it++;
+	}
+	print_map_size(test);
+}
+
+template <typename T>
 void print_vector_size(T& c) {
 	std::cout << "Size: " << c.size() << std::endl;
 	std::cout << "Capacity: " << c.capacity() << std::endl;
@@ -61,35 +87,36 @@ void print_vector(T& test) {
 	print_vector_size(test);
 }
 
+template<typename T>
 class LeakTest {
 public:
-	int i;
-	int *a;
+	T i;
+	T *a;
 	LeakTest() {
-		a = new int;
-		*a = 42;
+		a = new T;
 	}
-	LeakTest(const LeakTest& t) {
-		a = new int;
+	LeakTest(const LeakTest& t): i(t.i) {
+		a = new T;
 		*a = *t.a;
 		(void) t;
 	}
-	LeakTest(int ii) : i(ii){
-		a = new int;
+	LeakTest(T ii) : i(ii){
+		a = new T;
 		*a = ii;
 	}
 
 	LeakTest &operator=(const LeakTest& other) {
 		if (&other != this) {
 			delete a;
-			a = new int;
+			a = new T;
 			*a = *other.a;
+			i = other.i;
 		}
 		return *this;
 	}
 
 	friend std::ostream &operator<<(std::ostream &os, const LeakTest &test) {
-		os << *test.a;
+		os << test.i;
 		return os;
 	}
 
@@ -97,6 +124,8 @@ public:
 		delete a;
 	}
 };
+
+double print_used_time(struct timeval& begin);
 
 /******************************************************************/
 /************************ VECTOR **********************************/
@@ -108,13 +137,43 @@ void capacity_test();
 void access_test();
 void modifiers_test();
 void vector_benchmark();
+double run_vector_tests(bool run_benchmark);
 
+
+/*****************************************************************/
+/************************ STACK **********************************/
+/*****************************************************************/
 
 void stack_test();
 void stack_bench();
+double run_stack_tests(bool run_benchmark);
 
-void map_iter_cap_access();
+/*****************************************************************/
+/************************ MAP   **********************************/
+/*****************************************************************/
+
+double  run_map_tests(bool run_benchmark);
+void map_iter();
+void map_access();
+void map_constructors();
+void map_leaks();
+void map_modifiers_tests();
+void map_operations();
 void map_bench();
 
+/*****************************************************************/
+/************************ SET   **********************************/
+/*****************************************************************/
+
+double  run_set_tests(bool run_benchmark);
+void set_iter();
+void set_constructors();
+void set_modifiers_tests();
+void set_operations();
+void set_bench();
+
+
+
+double subject_test(const char* arg);
 
 #endif //FT_CONTAINER_FT_CONTAINERS_TEST_HPP

@@ -336,20 +336,18 @@ namespace ft {
 
 	private:
 		void check_basic_conditions(node_pointer n) {
-			if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
-				&& (n->parent->is_red && get_gparent_node(n)->left == n->parent))
-				right_rotation(n);
-			else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
-					 && (n->parent->is_red && get_gparent_node(n)->left == n->parent)
-					 && (!n->parent->left->is_red))
-				left_right_rotation(n);
-			else if ((get_gparent_node(n)) && (n->is_red && n->parent->right == n)
-					 && (n->parent->is_red && get_gparent_node(n)->right == n->parent))
-				left_rotation(n);
-			else if ((get_gparent_node(n)) && (n->is_red && n->parent->left == n)
-					 && (n->parent->is_red && get_gparent_node(n)->right == n->parent)
-					 && (!n->parent->right->is_red))
-				right_left_rotation(n);
+			node_pointer gp = get_gparent_node(n);
+			node_pointer par = n->parent;
+			if (gp && n->is_red && par->is_red) {
+				if (par->left == n && gp->left == par)
+					right_rotation(n);
+				else if (par->right == n && gp->left == par && (!par->left || !par->left->is_red))
+					left_right_rotation(n);
+				else if (par->right == n && gp->right == par)
+					left_rotation(n);
+				else if (par->left == n && gp->right == par && (!par->right || !par->right->is_red))
+					right_left_rotation(n);
+			}
 		}
 
 	private:
@@ -411,16 +409,16 @@ namespace ft {
 				return ft::make_pair(_root, true);
 			}
 			while (true) {
-				if (key == current->key()) {
-					return ft::make_pair(iterator(current), false);
-				}
 				if (_k_comp(key, current->key())) {
 					if (!current->left->is_nullLeaf()) { current = current->left; continue; }
-					else { new_element = replace_node_value(val, current->left); break; }
-				}
-				if (!current->right->is_nullLeaf()) { current = current->right; continue; }
-				new_element = replace_node_value(val, current->right);
-				break;
+					new_element = replace_node_value(val, current->left);
+					break;
+				} else if (_k_comp(current->key(), key)) {
+					if (!current->right->is_nullLeaf()) { current = current->right; continue; }
+					new_element = replace_node_value(val, current->right);
+					break;
+				} else
+					return ft::make_pair(iterator(current), false);
 			}
 			_size++;
 			new_element->is_red = true;
@@ -510,12 +508,12 @@ namespace ft {
 		iterator find (const key_type& k) {
 			node_pointer tmp = _root;
 			while (tmp && !tmp->is_nullLeaf()) {
-				if (k == tmp->key())
-					return iterator(tmp);
 				if (_k_comp(k, tmp->key()))
 					tmp = tmp->left;
-				else
+				else if (_k_comp(tmp->key(), k))
 					tmp = tmp->right;
+				else
+					return iterator(tmp);
 			}
 			return end();
 		}
@@ -524,12 +522,12 @@ namespace ft {
 		const_iterator find (const key_type& k) const {
 			node_pointer tmp = _root;
 			while (tmp && !tmp->is_nullLeaf()) {
-				if (k == tmp->key())
-					return const_iterator(tmp);
 				if (_k_comp(k, tmp->key()))
 					tmp = tmp->left;
-				else
+				else if (_k_comp(tmp->key(), k))
 					tmp = tmp->right;
+				else
+					return const_iterator(tmp);
 			}
 			return end();
 		}
@@ -663,12 +661,12 @@ namespace ft {
 			node_pointer tmp = _root;
 			key_type k = KeyValGetter<Key, Mapped>::get_key(*ptr);
 			while (tmp && !tmp->is_nullLeaf()) {
-				if (k == tmp->key())
-					return tmp;
 				if (_k_comp(k, tmp->key()))
 					tmp = tmp->left;
-				else
+				else if (_k_comp(tmp->key(), k))
 					tmp = tmp->right;
+				else
+					return tmp;
 			}
 			return _end_node;
 		}
@@ -785,18 +783,6 @@ namespace ft {
 				return ret;
 			}
 		}
-
-		/*
-	private:
-		void swap_nodes(iterator it1, iterator it2) {
-			node tmp;
-			node_pointer elem1 = find_nodeptr(it1);
-			node_pointer elem2 = find_nodeptr(it2);
-			tmp = *elem1;
-
-			elem1->p
-		}
-		 */
 	};
 }
 #endif //CONTAINERS_RB_TREE_HPP

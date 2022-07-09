@@ -6,19 +6,19 @@
 using namespace ft;
 
 void stack_test() {
-	stack<LeakTest> leak;
+	stack<LeakTest<int> > leak;
 	type_print(leak.empty());
 	type_print(leak.size());
 	{
-		for (int i = 0; i < 100000; i++) {
-			LeakTest l(i);
+		for (int i = 0; i < 1000000; i++) {
+			LeakTest<int> l(i);
 			leak.push(l);
 		}
 		type_print(leak.empty());
 		type_print(leak.size());
 	}
 	while  (!leak.empty()) {
-		if (leak.size() > 99000)
+		if (leak.size() > 990000)
 			std::cout << *leak.top().a << std::endl;
 		leak.pop();
 	}
