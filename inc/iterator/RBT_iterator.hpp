@@ -6,9 +6,9 @@
 #define CONTAINERS_RBT_ITERATOR_HPP
 #include "iterator.hpp"
 
- /*	Useful link:
-	https://www.cs.odu.edu/~zeil/cs361/latest/Public/treetraversal/index.html
- */
+/*	Useful link:
+   https://www.cs.odu.edu/~zeil/cs361/latest/Public/treetraversal/index.html
+*/
 
 namespace ft {
 	template <typename T, typename ValType>
@@ -36,9 +36,9 @@ namespace ft {
 
 		/* Copy assign operator */
 		RBT_iterator &operator=(const RBT_iterator<T, ValType>& other) {
-				 if (this == &other) { return *this; }
-				 _ptr = other._ptr;
-				 return *this;
+			if (this == &other) { return *this; }
+			_ptr = other._ptr;
+			return *this;
 		}
 
 		/*	Default destructor */
@@ -57,7 +57,7 @@ namespace ft {
 
 	private:
 		/*	Returns last null leaf (right child of last element) */
-		node_pointer get_last_leaf() const {
+		node_pointer get_last_nullLeaf() const {
 			node_pointer tmp = get_root();
 			while (tmp->right)
 				tmp = tmp->right;
@@ -66,7 +66,7 @@ namespace ft {
 
 	private:
 		/*	Returns first null leaf (left child of left element) */
-		node_pointer get_first_leaf() const {
+		node_pointer get_first_nullLeaf() const {
 			node_pointer tmp = get_root();
 			while (tmp->left)
 				tmp = tmp->left;
@@ -87,19 +87,18 @@ namespace ft {
 		/* increment / decrement */
 		RBT_iterator& operator++() {
 			node_pointer p;
-			if (_ptr->right && _ptr->right) {
+			if (_ptr->right && !_ptr->right->is_nullLeaf()) {
 				_ptr = _ptr->right;
-				while (_ptr->left) {
+				while (!_ptr->left->is_nullLeaf()) {
 					_ptr = _ptr->left;
 				}
 			} else {
-				node_pointer root = get_root();
-				if (_ptr == root->parent || _ptr->right == get_last_leaf()) {
-					_ptr = root->parent;
+				if (_ptr == get_root()->parent || _ptr->right == get_last_nullLeaf()) {
+					_ptr = get_root()->parent;
 					return *this;
 				}
 				p = _ptr->parent;
-				while (p && _ptr == p->right) { // FIXME CONDITION
+				while (p && !p->is_nullLeaf() && _ptr == p->right) {
 					_ptr = p;
 					p = p->parent;
 				}
@@ -111,22 +110,21 @@ namespace ft {
 		RBT_iterator& operator--() {
 			node_pointer p;
 			if (_ptr == get_root()->parent) {
-				_ptr = get_last_leaf()->parent;
+				_ptr = get_last_nullLeaf()->parent;
 				return *this;
 			}
-			if (_ptr->left && _ptr->left) {
+			if (_ptr->left && !_ptr->left->is_nullLeaf()) {
 				_ptr = _ptr->left;
-				while (_ptr->right) {
+				while (!_ptr->right->is_nullLeaf()) {
 					_ptr = _ptr->right;
 				}
 			} else {
-				node_pointer root = get_root();
-				if (_ptr == root->parent || _ptr->left == get_first_leaf()) {
-					_ptr = root->parent;
+				if (_ptr == get_root()->parent || _ptr->left == get_first_nullLeaf()) {
+					_ptr = get_root()->parent;
 					return *this;
 				}
 				p = _ptr->parent;
-				while (p && _ptr == p->left) { //FIXME condition
+				while (p && !p->is_nullLeaf() && _ptr == p->left) {
 					_ptr = p;
 					p = p->parent;
 				}
