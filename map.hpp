@@ -179,8 +179,8 @@ namespace ft {
 		* Member types iterator and const_iterator are bidirectional iterator types that point to elements. */
 
 		void erase (iterator first, iterator last) {
-			for (; first != last; first++)
-				erase(first);
+			while(first != last)
+				erase(first++);
 		}
 
 		/*	Swap content
